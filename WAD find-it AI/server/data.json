@@ -1,0 +1,79 @@
+{
+    "locations": ["Bekasi", "Jakarta", "Bandung", "Bogor", "Depok"],
+    "stores": [
+        {
+            "id": 1,
+            "name": "RM Padang Sederhana",
+            "rating": 4.8,
+            "location": "Bekasi",
+            "address": "Jl. Ahmad Yani No. 1, Bekasi Selatan",
+            "products": [
+                { "name": "Nasi Padang Rendang", "price": 24000 },
+                { "name": "Nasi Padang Ayam Pop", "price": 22000 }
+            ]
+        },
+        {
+            "id": 2,
+            "name": "Padang Merdeka",
+            "rating": 4.5,
+            "location": "Bekasi",
+            "address": "Jl. Pekayon Raya No. 15, Bekasi",
+            "products": [
+                { "name": "Nasi Padang Lengkap", "price": 28000 },
+                { "name": "Nasi Padang Rendang", "price": 27000 }
+            ]
+        },
+        {
+            "id": 3,
+            "name": "Rumah Makan Garuda",
+            "rating": 4.9,
+            "location": "Jakarta",
+            "address": "Jl. Sabang No. 10, Jakarta Pusat",
+            "products": [
+                { "name": "Nasi Padang Rendang", "price": 35000 }
+            ]
+        },
+        {
+            "id": 4,
+            "name": "Warung Nasi Ampera",
+            "rating": 4.3,
+            "location": "Jakarta",
+            "address": "Jl. TB Simatupang, Jakarta Selatan",
+            "products": [
+                { "name": "Nasi Rames", "price": 20000 }
+            ]
+        },
+        {
+            "id": 5,
+            "name": "Gado-Gado Boplo",
+            "rating": 4.6,
+            "location": "Bekasi",
+            "address": "Summarecon Mall Bekasi",
+            "products": [
+                { "name": "Gado-Gado", "price": 30000 },
+                { "name": "Nasi Goreng", "price": 35000 }
+            ]
+        },
+         {
+            "id": 6,
+            "name": "Berkah Gadget",
+            "rating": 4.7,
+            "location": "Bekasi",
+            "address": "Bekasi Cyber Park",
+            "products": [
+                { "name": "Laptop ASUS", "price": 5000000 },
+                { "name": "Mouse Logitech", "price": 100000 }
+            ]
+        },
+         {
+            "id": 7,
+            "name": "Toko Komputer Jaya",
+            "rating": 4.2,
+            "location": "Jakarta",
+            "address": "Mangga Dua Mall, Jakarta",
+            "products": [
+                { "name": "Laptop Lenovo", "price": 4500000 }
+            ]
+        }
+    ]
+}
