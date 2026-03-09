@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find.it AI - Driver Dashboard</title>
+    <meta name="description"
+        content="Dashboard Driver Find.it AI - Kelola orderan, peta realtime, dan komunikasi dengan toko.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .gradient-driver {
+            background: linear-gradient(135deg, #022c22 0%, #064e3b 50%, #047857 100%);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-stat {
+            transition: all 0.3s ease;
+        }
+
+        .card-stat:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, #064e3b, #047857);
+            color: white;
+        }
+
+        #driver-map {
+            height: 400px;
+            width: 100%;
+            border-radius: 16px;
+            z-index: 1;
+        }
+
+        .pulse-dot {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            50% {
+                transform: scale(1.3);
+                opacity: 0.7;
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="min-h-screen gradient-driver flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-8 w-full max-w-md text-white fade-in">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-black tracking-tight">find.it <span class="text-green-400">AI</span></h1>
+                <p class="text-sm opacity-70 mt-1">🏍️ Driver Dashboard</p>
+            </div>
+            <div id="login-form">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold opacity-70 mb-1 block">Email Driver</label>
+                        <input type="email" id="login-email"
+                            class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400 placeholder-white/40"
+                            placeholder="driver@findit.ai">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold opacity-70 mb-1 block">Password</label>
+                        <input type="password" id="login-password"
+                            class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400 placeholder-white/40"
+                            placeholder="••••••••">
+                    </div>
+                    <button onclick="handleLogin()"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-[1.02] shadow-lg">Masuk
+                        sebagai Driver</button>
+                </div>
+                <div class="text-center mt-4">
+                    <button onclick="showRegister()" class="text-xs text-green-300 hover:underline">Belum terdaftar?
+                        Daftar Driver Baru</button>
+                </div>
+            </div>
+            <div id="register-form" class="hidden">
+                <div class="space-y-3">
+                    <input type="text" id="reg-name"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Nama Lengkap">
+                    <input type="email" id="reg-email"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Email">
+                    <input type="password" id="reg-password"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Password">
+                    <input type="text" id="reg-phone"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="No. Telepon">
+                    <input type="text" id="reg-vehicle"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Kendaraan (Motor/Mobil)">
+                    <input type="text" id="reg-plate"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Plat Nomor">
+                    <button onclick="handleRegister()"
+                        class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-[1.02]">Daftar
+                        Sekarang</button>
+                </div>
+                <div class="text-center mt-4"><button onclick="showLogin()"
+                        class="text-xs text-green-300 hover:underline">Sudah punya akun? Login</button></div>
+            </div>
+            <p id="auth-message" class="text-center text-xs mt-4 hidden"></p>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard" class="hidden">
+        <!-- Sidebar -->
+        <div class="fixed left-0 top-0 bottom-0 w-64 gradient-driver text-white flex flex-col z-50">
+            <div class="p-6 border-b border-white/10">
+                <h1 class="text-xl font-black tracking-tight">find.it <span class="text-green-400">AI</span></h1>
+                <p class="text-[10px] opacity-50 mt-1 uppercase tracking-widest">🏍️ Driver Dashboard</p>
+            </div>
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                <button onclick="showSection('home')"
+                    class="sidebar-link active w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-home">
+                    <i data-feather="home" class="w-4 h-4"></i> Dashboard
+                </button>
+                <button onclick="showSection('map')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-map">
+                    <i data-feather="map" class="w-4 h-4"></i> Peta & Navigasi
+                </button>
+                <button onclick="showSection('active-order')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-active-order">
+                    <i data-feather="navigation" class="w-4 h-4"></i> Order Aktif
+                </button>
+                <button onclick="showSection('history')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-history">
+                    <i data-feather="clock" class="w-4 h-4"></i> Riwayat Antar
+                </button>
+                <button onclick="showSection('chat')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-chat">
+                    <i data-feather="message-circle" class="w-4 h-4"></i> Chat
+                </button>
+                <button onclick="showSection('earnings')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-earnings">
+                    <i data-feather="dollar-sign" class="w-4 h-4"></i> Penghasilan
+                </button>
+                <button onclick="showSection('profile')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-profile">
+                    <i data-feather="user" class="w-4 h-4"></i> Profil
+                </button>
+                <button onclick="showSection('driver-help')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-driver-help">
+                    <i data-feather="help-circle" class="w-4 h-4"></i> Help & CS
+                </button>
+            </nav>
+            <div class="p-4 border-t border-white/10 space-y-1">
+                <a href="/"
+                    class="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition text-blue-300 block">
+                    <i data-feather="shopping-bag" class="w-4 h-4"></i> Ke Halaman Buyer
+                </a>
+                <button onclick="handleLogout()"
+                    class="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-red-900/50 transition text-red-300">
+                    <i data-feather="log-out" class="w-4 h-4"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 min-h-screen">
+            <header class="bg-white border-b px-8 py-4 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+                <div>
+                    <h2 id="page-title" class="text-xl font-bold text-gray-800">Dashboard Driver</h2>
+                    <p id="page-subtitle" class="text-xs text-gray-400">Status: Online</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div id="status-toggle" onclick="toggleOnline()"
+                        class="bg-green-100 text-green-700 text-xs font-bold px-4 py-2 rounded-full cursor-pointer hover:bg-green-200 transition flex items-center gap-2">
+                        <span class="w-2 h-2 bg-green-500 rounded-full pulse-dot"></span> <span
+                            id="status-text">ONLINE</span>
+                    </div>
+                    <span id="driver-name" class="text-sm font-bold text-gray-600"></span>
+                    <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center"><i
+                            data-feather="user" class="w-5 h-5 text-green-600"></i></div>
+                </div>
+            </header>
+
+            <main class="p-8">
+                <!-- HOME -->
+                <div id="section-home" class="section fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="card-stat bg-white rounded-2xl p-6 border shadow-sm">
+                            <div class="flex items-center justify-between mb-3"><span
+                                    class="text-xs font-bold text-gray-400 uppercase">Order Hari Ini</span>
+                                <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><i
+                                        data-feather="package" class="w-5 h-5 text-green-600"></i></div>
+                            </div>
+                            <h3 id="stat-orders" class="text-3xl font-black text-gray-800">0</h3>
+                        </div>
+                        <div class="card-stat bg-white rounded-2xl p-6 border shadow-sm">
+                            <div class="flex items-center justify-between mb-3"><span
+                                    class="text-xs font-bold text-gray-400 uppercase">Penghasilan Hari Ini</span>
+                                <div class="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center"><i
+                                        data-feather="dollar-sign" class="w-5 h-5 text-emerald-600"></i></div>
+                            </div>
+                            <h3 id="stat-earnings" class="text-2xl font-black text-emerald-600">Rp 0</h3>
+                        </div>
+                        <div class="card-stat bg-white rounded-2xl p-6 border shadow-sm">
+                            <div class="flex items-center justify-between mb-3"><span
+                                    class="text-xs font-bold text-gray-400 uppercase">Jarak Tempuh</span>
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><i
+                                        data-feather="navigation" class="w-5 h-5 text-blue-600"></i></div>
+                            </div>
+                            <h3 id="stat-distance" class="text-3xl font-black text-gray-800">0 km</h3>
+                        </div>
+                        <div class="card-stat bg-white rounded-2xl p-6 border shadow-sm">
+                            <div class="flex items-center justify-between mb-3"><span
+                                    class="text-xs font-bold text-gray-400 uppercase">Rating</span>
+                                <div class="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center"><i
+                                        data-feather="star" class="w-5 h-5 text-yellow-600"></i></div>
+                            </div>
+                            <h3 id="stat-rating" class="text-3xl font-black text-gray-800">⭐ 4.9</h3>
+                        </div>
+                    </div>
+
+                    <!-- Mini Map Preview -->
+                    <div class="bg-white rounded-2xl p-6 border shadow-sm mb-6">
+                        <h4 class="font-bold text-gray-800 mb-4">📍 Posisi Anda Saat Ini</h4>
+                        <div id="mini-map" style="height:250px; border-radius:12px;"></div>
+                    </div>
+
+                    <!-- Active Order Card -->
+                    <div id="home-active-order"
+                        class="bg-gradient-to-r from-green-600 to-emerald-600 rounded-2xl p-6 text-white shadow-lg">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-xs font-bold opacity-70 uppercase">Order Aktif</p>
+                                <h3 id="home-order-info" class="text-lg font-black mt-1">Tidak ada order aktif</h3>
+                                <p id="home-order-detail" class="text-sm opacity-80 mt-1">Menunggu orderan masuk...</p>
+                            </div>
+                            <button onclick="showSection('active-order')"
+                                class="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-xl text-sm font-bold transition">Lihat
+                                Detail →</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MAP & NAVIGATION -->
+                <div id="section-map" class="section hidden fade-in">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">🗺️ Peta Realtime & Navigasi</h3>
+                        <button onclick="runAiRoute()"
+                            class="bg-gradient-to-r from-green-600 to-teal-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition">
+                            <i data-feather="cpu" class="w-4 h-4"></i> AI Route Optimizer
+                        </button>
+                    </div>
+                    <div class="bg-white rounded-2xl p-4 border shadow-sm mb-4">
+                        <div id="driver-map"></div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-green-50 border border-green-200 rounded-2xl p-4">
+                            <p class="text-xs font-bold text-green-700 uppercase">🏍️ Posisi Driver</p>
+                            <p id="map-driver-pos" class="font-bold text-sm mt-1">Cikarang Utara</p>
+                            <p class="text-xs text-gray-400">Lat: -6.3170, Lng: 107.1716</p>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+                            <p class="text-xs font-bold text-blue-700 uppercase">🏪 Posisi Toko</p>
+                            <p id="map-store-pos" class="font-bold text-sm mt-1">Jababeka, Cikarang</p>
+                            <p class="text-xs text-gray-400">Lat: -6.3078, Lng: 107.1615</p>
+                        </div>
+                        <div class="bg-red-50 border border-red-200 rounded-2xl p-4">
+                            <p class="text-xs font-bold text-red-700 uppercase">🙎‍♂️ Posisi Buyer</p>
+                            <p id="map-buyer-pos" class="font-bold text-sm mt-1">President University</p>
+                            <p class="text-xs text-gray-400">Lat: -6.3148, Lng: 107.1780</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACTIVE ORDER -->
+                <div id="section-active-order" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-4">🚀 Order Aktif</h3>
+                    <div id="active-order-content">
+                        <div class="bg-white rounded-2xl border shadow-sm p-6 mb-4">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h4 id="order-id" class="font-black text-lg text-gray-800">Menunggu Order...</h4>
+                                    <p id="order-items" class="text-sm text-gray-400 mt-1">Belum ada order aktif saat
+                                        ini.</p>
+                                </div>
+                                <span id="order-status-badge"
+                                    class="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">Standby</span>
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div class="bg-blue-50 rounded-xl p-3">
+                                    <p class="text-[10px] font-bold text-blue-600 uppercase">🏪 Ambil di</p>
+                                    <p id="order-store" class="font-bold text-sm">-</p>
+                                    <p id="order-store-addr" class="text-xs text-gray-400">-</p>
+                                </div>
+                                <div class="bg-red-50 rounded-xl p-3">
+                                    <p class="text-[10px] font-bold text-red-600 uppercase">📍 Antar ke</p>
+                                    <p id="order-buyer" class="font-bold text-sm">-</p>
+                                    <p id="order-buyer-addr" class="text-xs text-gray-400">-</p>
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="updateDeliveryStatus('Mengambil Pesanan')"
+                                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-sm font-bold transition">📦
+                                    Ambil Pesanan</button>
+                                <button onclick="updateDeliveryStatus('Mengantar')"
+                                    class="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-xl text-sm font-bold transition">🏍️
+                                    Antar ke Buyer</button>
+                                <button onclick="updateDeliveryStatus('Selesai')"
+                                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl text-sm font-bold transition">✅
+                                    Selesai</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HISTORY -->
+                <div id="section-history" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-4">📋 Riwayat Pengantaran</h3>
+                    <div id="delivery-history" class="space-y-3"></div>
+                </div>
+
+                <!-- CHAT -->
+                <div id="section-chat" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-4">💬 Chat</h3>
+                    <div class="flex border-b mb-4">
+                        <button onclick="setChatTarget('buyer')" id="ct-buyer"
+                            class="flex-1 py-3 text-sm font-bold text-green-600 border-b-2 border-green-600">🙎‍♂️ Chat
+                            Buyer</button>
+                        <button onclick="setChatTarget('seller')" id="ct-seller"
+                            class="flex-1 py-3 text-sm font-bold text-gray-400 border-b-2 border-transparent">🏪 Chat
+                            Seller</button>
+                    </div>
+                    <div class="bg-white rounded-2xl border shadow-sm overflow-hidden"
+                        style="height:400px; display:flex; flex-direction:column;">
+                        <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50"></div>
+                        <div class="p-3 border-t flex gap-2">
+                            <input id="chat-input" type="text" placeholder="Ketik pesan..."
+                                class="flex-1 border rounded-xl px-4 py-2 text-sm focus:outline-none focus:border-green-400">
+                            <button onclick="sendChat()"
+                                class="bg-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-green-700 transition">Kirim</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- EARNINGS -->
+                <div id="section-earnings" class="section hidden fade-in">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold">💰 Penghasilan</h3>
+                        <button onclick="runAiEarnings()"
+                            class="bg-gradient-to-r from-emerald-600 to-green-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition">
+                            <i data-feather="trending-up" class="w-4 h-4"></i> AI Profit Forecast
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-green-50 border border-green-200 rounded-2xl p-5">
+                            <p class="text-xs font-bold text-green-600 uppercase">Hari Ini</p>
+                            <h3 id="earn-today" class="text-2xl font-black text-green-700 mt-2">Rp 0</h3>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+                            <p class="text-xs font-bold text-blue-600 uppercase">Minggu Ini</p>
+                            <h3 id="earn-week" class="text-2xl font-black text-blue-700 mt-2">Rp 0</h3>
+                        </div>
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-2xl p-5">
+                            <p class="text-xs font-bold text-emerald-600 uppercase">Bulan Ini</p>
+                            <h3 id="earn-month" class="text-2xl font-black text-emerald-700 mt-2">Rp 0</h3>
+                        </div>
+                    </div>
+                    <div id="earn-list" class="space-y-2"></div>
+                </div>
+
+                <!-- PROFILE -->
+                <div id="section-profile" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-6">👤 Profil Driver</h3>
+                    <div class="bg-white rounded-2xl p-8 border shadow-sm max-w-2xl">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2"><label class="text-xs font-bold text-gray-500 mb-1 block">Nama
+                                    Lengkap</label><input id="pf-name"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Telepon</label><input
+                                    id="pf-phone"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Kendaraan</label><input
+                                    id="pf-vehicle"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Plat Nomor</label><input
+                                    id="pf-plate"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-green-400">
+                            </div>
+                        </div>
+                        <button onclick="saveProfile()"
+                            class="mt-6 bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl text-sm font-bold transition">Simpan
+                            Profil</button>
+                    </div>
+                </div>
+
+                <!-- HELP & CS -->
+                <div id="section-driver-help" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-6">🎧 Help & Customer Service</h3>
+                    <div class="bg-white rounded-2xl p-8 border shadow-sm max-w-3xl text-center">
+                        <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-feather="headphones" class="w-8 h-8 text-green-600"></i>
+                        </div>
+                        <h4 class="text-xl font-bold mb-2">Pusat Bantuan Driver</h4>
+                        <p class="text-sm text-gray-500 mb-8">Butuh bantuan darurat di jalan atau kendala aplikasi? Tim
+                            CS kami siap membantu 24 jam.</p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left max-w-lg mx-auto mb-8 font-medium">
+                            <div class="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer">🆘 Bantuan Darurat
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer">💳 Masalah Saldo
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer">📦 Kendala Barang
+                            </div>
+                            <div class="p-4 bg-gray-50 rounded-xl hover:bg-gray-100 cursor-pointer">🛡️ Asuransi &
+                                Keamanan</div>
+                        </div>
+
+                        <button onclick="alert('Menghubungkan ke Tim Support...')"
+                            class="bg-green-600 text-white px-10 py-3 rounded-xl font-bold shadow-lg hover:bg-green-700">MULAI
+                            CHAT CS</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION SYSTEM -->
+    <div id="notify-popup"
+        class="fixed top-6 right-6 z-[100] translate-x-[120%] transition-transform duration-500 max-w-sm w-full">
+        <div class="bg-white border-l-4 border-green-600 p-4 rounded-2xl shadow-2xl flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+                <i data-feather="bell" class="w-5 h-5 text-green-600"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-bold text-sm text-gray-800" id="notify-title">Pemberitahuan</h4>
+                <p class="text-xs text-gray-500 mt-1" id="notify-msg">Pesan sistem...</p>
+            </div>
+            <button onclick="closeNotify()" class="text-gray-400 hover:text-gray-600"><i data-feather="x"
+                    class="w-4 h-4"></i></button>
+        </div>
+    </div>
+
+    <script>
+        let currentDriver = JSON.parse(localStorage.getItem('driver_user') || 'null');
+        let isOnline = true;
+        let chatTarget = 'buyer';
+        let driverMsgs = { buyer: [], seller: [] };
+        let deliveryHistory = JSON.parse(localStorage.getItem('driver_history') || '[]');
+        let mainMap = null, miniMap = null;
+
+        // Initial demo driver account
+        function initDriverUser() {
+            let drivers = JSON.parse(localStorage.getItem('all_drivers') || '[]');
+            if (drivers.length === 0) {
+                const defaultDriver = {
+                    id: 'demo-driver',
+                    name: 'Budiman Driver',
+                    email: 'driver@findit.ai',
+                    password: 'admin123',
+                    phone: '08999999999',
+                    vehicle: 'Motor Honda Vario',
+                    plate: 'B 1234 ABC'
+                };
+                drivers.push(defaultDriver);
+                localStorage.setItem('all_drivers', JSON.stringify(drivers));
+            }
+        }
+        initDriverUser();
+
+        if (currentDriver) showDashboard();
+
+        // Notification System
+        function showNotify(title, msg, duration = 5000) {
+            const popup = document.getElementById('notify-popup');
+            document.getElementById('notify-title').innerText = title;
+            document.getElementById('notify-msg').innerText = msg;
+            popup.classList.remove('translate-x-[120%]');
+            feather.replace();
+            setTimeout(() => popup.classList.add('translate-x-[120%]'), duration);
+        }
+        function closeNotify() { document.getElementById('notify-popup').classList.add('translate-x-[120%]'); }
+
+        // REAL-TIME LISTENER
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'driver_hired_event') {
+                const data = JSON.parse(e.newValue);
+                showNotify("🚀 ORDER ASSIGNED!", `Ambil pesanan di ${data.store}. Lokasi: ${data.storeAddress}`);
+                // Auto switch to active order
+                setTimeout(() => {
+                    showSection('active-order');
+                }, 1000);
+            }
+            if (e.key === 'order_status_update') {
+                const data = JSON.parse(e.newValue);
+                showNotify("Info Pesanan", `Status pesanan ${data.id}: ${data.status}`);
+                if (data.status === 'Dikirim') {
+                    showNotify("Pemberitahuan", `Toko ${data.id} sudah menyiapkan barang. Segera jemput!`);
+                }
+            }
+        });
+
+        function showRegister() { document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); }
+        function showLogin() { document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); }
+
+        function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            if (!email || !password) return showAuthMsg('Email dan password wajib diisi.', 'red');
+            const drivers = JSON.parse(localStorage.getItem('all_drivers') || '[]');
+            const d = drivers.find(x => x.email === email && x.password === password);
+            if (!d) return showAuthMsg('Email/password salah. Daftar dulu.', 'red');
+            currentDriver = d;
+            localStorage.setItem('driver_user', JSON.stringify(currentDriver));
+            showDashboard();
+        }
+
+        function handleRegister() {
+            const name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const vehicle = document.getElementById('reg-vehicle').value.trim();
+            const plate = document.getElementById('reg-plate').value.trim();
+            if (!name || !email || !password) return showAuthMsg('Semua field wajib diisi.', 'red');
+            const drivers = JSON.parse(localStorage.getItem('all_drivers') || '[]');
+            if (drivers.find(x => x.email === email)) return showAuthMsg('Email sudah terdaftar.', 'yellow');
+            const nd = { id: Date.now(), name, email, password, phone, vehicle: vehicle || 'Vario', plate: plate || 'B 1234 XX', rating: 4.9, joined: new Date().toISOString() };
+            drivers.push(nd); localStorage.setItem('all_drivers', JSON.stringify(drivers));
+            currentDriver = nd; localStorage.setItem('driver_user', JSON.stringify(currentDriver));
+            seedDemoHistory();
+            showAuthMsg('✅ Berhasil! Mengarahkan...', 'green');
+            setTimeout(() => showDashboard(), 500);
+        }
+
+        function seedDemoHistory() {
+            deliveryHistory = [
+                { id: 'DLV-001', store: 'Kopi Kenangan Pusat', buyer: 'Budi', items: 'Kopi Susu x2', total: 36000, earned: 8000, distance: 2.3, date: '2026-03-08', status: 'Selesai' },
+                { id: 'DLV-002', store: 'Gacoan Cikarang', buyer: 'Siti', items: 'Mie Gacoan x3', total: 54000, earned: 10000, distance: 3.1, date: '2026-03-08', status: 'Selesai' },
+                { id: 'DLV-003', store: 'KFC Jababeka', buyer: 'Andi', items: 'Super Besar 1 x1', total: 42000, earned: 7000, distance: 1.8, date: '2026-03-08', status: 'Selesai' },
+                { id: 'DLV-004', store: 'Mixue Lippo', buyer: 'Dewi', items: 'Boba Sundae x4', total: 48000, earned: 9000, distance: 4.2, date: '2026-03-07', status: 'Selesai' },
+                { id: 'DLV-005', store: 'Starbucks SGC', buyer: 'Reza', items: 'Frappuccino x2', total: 86000, earned: 12000, distance: 5.0, date: '2026-03-07', status: 'Selesai' }
+            ];
+            localStorage.setItem('driver_history', JSON.stringify(deliveryHistory));
+        }
+
+        function handleLogout() { localStorage.removeItem('driver_user'); currentDriver = null; document.getElementById('dashboard').classList.add('hidden'); document.getElementById('login-screen').classList.remove('hidden'); }
+        function showAuthMsg(msg, color) { const el = document.getElementById('auth-message'); el.textContent = msg; el.className = `text-center text-xs mt-4 text-${color}-400`; el.classList.remove('hidden'); }
+        function fmt(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
+        function toggleOnline() { isOnline = !isOnline; const el = document.getElementById('status-text'); const dot = document.getElementById('status-toggle'); el.textContent = isOnline ? 'ONLINE' : 'OFFLINE'; dot.className = isOnline ? 'bg-green-100 text-green-700 text-xs font-bold px-4 py-2 rounded-full cursor-pointer hover:bg-green-200 transition flex items-center gap-2' : 'bg-red-100 text-red-700 text-xs font-bold px-4 py-2 rounded-full cursor-pointer hover:bg-red-200 transition flex items-center gap-2'; }
+
+        function showDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('driver-name').textContent = currentDriver?.name || 'Driver';
+            deliveryHistory = JSON.parse(localStorage.getItem('driver_history') || '[]');
+            if (deliveryHistory.length === 0) seedDemoHistory();
+            feather.replace();
+            loadHome();
+            setTimeout(() => initMiniMap(), 300);
+        }
+
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('section-' + name).classList.remove('hidden');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            const n = document.getElementById('nav-' + name); if (n) n.classList.add('active');
+            const titles = {
+                'home': ['Dashboard', 'Status: ' + (isOnline ? 'Online' : 'Offline')],
+                'map': ['Peta & Navigasi', 'Tracking realtime'],
+                'active-order': ['Order Aktif', 'Detail pengantaran'],
+                'history': ['Riwayat', 'Semua pengantaran'],
+                'chat': ['Chat', 'Komunikasi buyer & seller'],
+                'earnings': ['Penghasilan', 'Detail pendapatan'],
+                'driver-help': ['Help & CS', 'Layanan bantuan driver'],
+                'profile': ['Profil', 'Edit data driver']
+            };
+            const [t, s] = titles[name] || ['Dashboard', ''];
+            document.getElementById('page-title').textContent = t;
+            document.getElementById('page-subtitle').textContent = s;
+            if (name === 'map') setTimeout(() => initMainMap(), 100);
+            if (name === 'history') renderHistory();
+            if (name === 'chat') renderChat();
+            if (name === 'earnings') renderEarnings();
+            if (name === 'active-order') renderActiveOrder();
+            if (name === 'profile') loadProfile();
+            if (name === 'driver-help') feather.replace();
+            feather.replace();
+        }
+
+        // AI FEATURES
+        function runAiRoute() {
+            alert("🤖 AGI AI Route Optimizer:\n\nMenganalisis kemacetan di area Cikarang... Rute tercepat ditemukan melalui Jl. Jababeka Raya. Mengurangi waktu tempuh 4 menit.");
+        }
+
+        function runAiEarnings() {
+            alert("🤖 AGI Profit Forecast:\n\nBerdasarkan tren hari ini, kami merekomendasikan untuk tetap aktif di area Lippo Cikarang hingga pukul 21:00. Estimasi tambahan pendapatan: Rp 45.000.");
+        }
+
+        // Positions: Cikarang area
+        const POS = { driver: [-6.3170, 107.1716], store: [-6.3078, 107.1615], buyer: [-6.3148, 107.1780] };
+
+        function initMiniMap() {
+            if (miniMap) miniMap.remove();
+            miniMap = L.map('mini-map').setView(POS.driver, 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(miniMap);
+            L.marker(POS.driver).addTo(miniMap).bindPopup('🏍️ Posisi Anda').openPopup();
+        }
+
+        function initMainMap() {
+            if (mainMap) mainMap.remove();
+            mainMap = L.map('driver-map').setView(POS.driver, 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OSM' }).addTo(mainMap);
+
+            const driverIcon = L.divIcon({ html: '<div style="background:#16a34a;color:white;padding:6px 10px;border-radius:12px;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.3)">🏍️ DRIVER</div>', className: '' });
+            const storeIcon = L.divIcon({ html: '<div style="background:#2563eb;color:white;padding:6px 10px;border-radius:12px;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.3)">🏪 TOKO</div>', className: '' });
+            const buyerIcon = L.divIcon({ html: '<div style="background:#dc2626;color:white;padding:6px 10px;border-radius:12px;font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,0.3)">🙎‍♂️ BUYER</div>', className: '' });
+
+            L.marker(POS.driver, { icon: driverIcon }).addTo(mainMap).bindPopup(`🏍️ Driver: ${currentDriver?.name}`);
+            L.marker(POS.store, { icon: storeIcon }).addTo(mainMap).bindPopup('🏪 Toko');
+            L.marker(POS.buyer, { icon: buyerIcon }).addTo(mainMap).bindPopup('🙎‍♂️ Buyer: President University');
+
+            // Draw route
+            L.polyline([POS.driver, POS.store, POS.buyer], { color: '#16a34a', weight: 4, dashArray: '10, 10' }).addTo(mainMap);
+        }
+
+        function loadHome() {
+            const todayOrders = deliveryHistory.filter(h => h.date === '2026-03-08');
+            document.getElementById('stat-orders').textContent = todayOrders.length;
+            document.getElementById('stat-earnings').textContent = fmt(todayOrders.reduce((a, b) => a + b.earned, 0));
+            document.getElementById('stat-distance').textContent = todayOrders.reduce((a, b) => a + b.distance, 0).toFixed(1) + ' km';
+            document.getElementById('stat-rating').textContent = '⭐ ' + (currentDriver?.rating || 4.9);
+
+            const active = JSON.parse(localStorage.getItem('active_delivery') || 'null');
+            if (active) {
+                document.getElementById('home-order-info').textContent = active.items;
+                document.getElementById('home-order-detail').textContent = `${active.store} → ${active.buyerAddress}`;
+            }
+        }
+
+        function renderActiveOrder() {
+            const active = JSON.parse(localStorage.getItem('active_delivery') || 'null');
+            if (!active) return;
+            document.getElementById('order-id').textContent = active.id;
+            document.getElementById('order-items').textContent = active.items + ' | ' + fmt(active.total);
+            document.getElementById('order-status-badge').textContent = active.status;
+            document.getElementById('order-store').textContent = active.store;
+            document.getElementById('order-store-addr').textContent = active.storeAddress;
+            document.getElementById('order-buyer').textContent = active.buyer;
+            document.getElementById('order-buyer-addr').textContent = active.buyerAddress;
+        }
+
+        function updateDeliveryStatus(status) {
+            const active = JSON.parse(localStorage.getItem('active_delivery') || 'null');
+            if (!active) return alert('Tidak ada order aktif!');
+            active.status = status;
+            localStorage.setItem('active_delivery', JSON.stringify(active));
+            document.getElementById('order-status-badge').textContent = status;
+
+            if (status === 'Selesai') {
+                const earned = Math.floor(active.total * 0.15);
+                deliveryHistory.unshift({ ...active, earned, distance: (Math.random() * 4 + 1).toFixed(1), date: new Date().toISOString().split('T')[0] });
+                localStorage.setItem('driver_history', JSON.stringify(deliveryHistory));
+                localStorage.removeItem('active_delivery');
+                alert('✅ Pengantaran selesai! Anda mendapat ' + fmt(earned));
+                loadHome();
+            }
+            renderActiveOrder();
+        }
+
+        function renderHistory() {
+            document.getElementById('delivery-history').innerHTML = deliveryHistory.map(h => `
+                <div class="bg-white rounded-xl border p-4 flex justify-between items-center shadow-sm">
+                    <div>
+                        <p class="font-bold text-sm">${h.id} <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full ml-2">${h.status}</span></p>
+                        <p class="text-xs text-gray-400 mt-1">🏪 ${h.store} → 🙎‍♂️ ${h.buyer}</p>
+                        <p class="text-xs text-gray-300">${h.items} | ${h.distance} km | ${h.date}</p>
+                    </div>
+                    <div class="text-right"><p class="font-black text-green-600">${fmt(h.earned)}</p></div>
+                </div>`).join('') || '<p class="text-gray-400 text-center py-10">Belum ada riwayat</p>';
+        }
+
+        // Chat
+        function setChatTarget(target) {
+            chatTarget = target;
+            ['buyer', 'seller'].forEach(t => {
+                const el = document.getElementById('ct-' + t);
+                el.className = t === target ? 'flex-1 py-3 text-sm font-bold text-green-600 border-b-2 border-green-600' : 'flex-1 py-3 text-sm font-bold text-gray-400 border-b-2 border-transparent';
+            });
+            renderChat();
+        }
+
+        function renderChat() {
+            const el = document.getElementById('chat-messages');
+            const msgs = chatTarget === 'buyer' ? (JSON.parse(localStorage.getItem('driver_messages') || '[]')) : driverMsgs.seller;
+            if (msgs.length === 0) { el.innerHTML = '<p class="text-center text-gray-400 text-sm p-8">Belum ada pesan</p>'; return; }
+            el.innerHTML = msgs.map(m => {
+                const isMe = m.sender === 'driver';
+                const isSystem = m.sender === 'system';
+                if (isSystem) return `<div class="text-center text-[10px] font-bold text-green-600 bg-green-50 px-3 py-1 rounded-full mx-auto">${m.text}</div>`;
+                return `<div class="flex ${isMe ? 'justify-end' : 'justify-start'}"><div class="max-w-[75%] p-3 rounded-xl text-sm ${isMe ? 'bg-green-600 text-white' : 'bg-white border text-gray-800'}">${!isMe ? '<p class="text-[10px] font-bold text-gray-400 mb-1">' + (chatTarget === 'buyer' ? '🙎‍♂️ Buyer' : '🏪 Seller') + '</p>' : ''}${m.text}</div></div>`;
+            }).join('');
+            el.scrollTop = el.scrollHeight;
+        }
+
+        function sendChat() {
+            const input = document.getElementById('chat-input');
+            const txt = input.value.trim(); if (!txt) return;
+            if (chatTarget === 'buyer') {
+                const msgs = JSON.parse(localStorage.getItem('driver_messages') || '[]');
+                msgs.push({ sender: 'driver', text: txt });
+                localStorage.setItem('driver_messages', JSON.stringify(msgs));
+            } else {
+                driverMsgs.seller.push({ sender: 'driver', text: txt });
+                setTimeout(() => { driverMsgs.seller.push({ sender: 'seller', text: 'Baik kak, pesanannya sudah siap ya!' }); renderChat(); }, 1000);
+            }
+            input.value = '';
+            renderChat();
+        }
+
+        function renderEarnings() {
+            const today = deliveryHistory.filter(h => h.date === '2026-03-08');
+            const todayEarn = today.reduce((a, b) => a + b.earned, 0);
+            document.getElementById('earn-today').textContent = fmt(todayEarn);
+            document.getElementById('earn-week').textContent = fmt(todayEarn * 5);
+            document.getElementById('earn-month').textContent = fmt(todayEarn * 22);
+            document.getElementById('earn-list').innerHTML = deliveryHistory.map(h => `
+                <div class="flex justify-between items-center p-3 bg-white rounded-xl border"><div><p class="font-bold text-sm">${h.store}</p><p class="text-xs text-gray-400">${h.date} · ${h.distance} km</p></div><p class="font-bold text-green-600">${fmt(h.earned)}</p></div>
+            `).join('');
+        }
+
+        function loadProfile() {
+            if (!currentDriver) return;
+            document.getElementById('pf-name').value = currentDriver.name || '';
+            document.getElementById('pf-phone').value = currentDriver.phone || '';
+            document.getElementById('pf-vehicle').value = currentDriver.vehicle || '';
+            document.getElementById('pf-plate').value = currentDriver.plate || '';
+        }
+        function saveProfile() {
+            currentDriver.name = document.getElementById('pf-name').value;
+            currentDriver.phone = document.getElementById('pf-phone').value;
+            currentDriver.vehicle = document.getElementById('pf-vehicle').value;
+            currentDriver.plate = document.getElementById('pf-plate').value;
+            localStorage.setItem('driver_user', JSON.stringify(currentDriver));
+            document.getElementById('driver-name').textContent = currentDriver.name;
+            alert('✅ Profil berhasil diperbarui!');
+        }
+
+        // Poll for new orders
+        setInterval(() => {
+            const active = JSON.parse(localStorage.getItem('active_delivery') || 'null');
+            if (active && document.getElementById('home-order-info')) {
+                document.getElementById('home-order-info').textContent = active.items;
+                document.getElementById('home-order-detail').textContent = `${active.store} → ${active.buyerAddress} | ${active.status}`;
+            }
+        }, 3000);
+
+        feather.replace();
+    </script>
+</body>
+
+</html>

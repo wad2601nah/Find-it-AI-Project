@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>find.it AI - Agentic Shopping</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cream: { 50: '#fffdf6', 100: '#fffbeb', 200: '#fef3c7', 300: '#fde68a', 400: '#facc15' },
+                        maroon: { 400: '#bc2f35', 500: '#9d2227', 600: '#80181b', 700: '#631113', 800: '#480a0b', 900: '#2e0405' }
+                    },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(157, 34, 39, 0.3);
+            border-radius: 10px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: rgba(255, 253, 246, 0.3);
+        }
+
+        .tab-content,
+        .modal {
+            display: none;
+        }
+
+        .tab-content.active,
+        .modal.active {
+            display: flex;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body class="h-screen flex flex-col font-sans bg-cream-50 text-maroon-900 dark:bg-maroon-800 dark:text-cream-50">
+
+    <!-- NAV -->
+    <nav
+        class="sticky top-0 z-50 backdrop-blur-md bg-cream-50/90 dark:bg-maroon-900/90 border-b border-maroon-100 dark:border-maroon-700 px-6 py-4 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="bg-maroon-600 dark:bg-cream-400 text-cream-50 dark:text-maroon-900 p-2 rounded-xl">
+                <i data-feather="cpu"></i>
+            </div>
+            <div>
+                <h1 class="font-bold text-xl text-maroon-700 dark:text-cream-300">find.it <span
+                        class="text-maroon-500 italic">AI</span></h1>
+                <p class="text-[10px] uppercase font-bold text-maroon-600/60 dark:text-cream-200/60 mt-0.5">Asisten
+                    Belanja Cerdas</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <a href="/admin"
+                class="p-2 rounded-full hover:bg-maroon-100 dark:hover:bg-maroon-800 text-maroon-600 dark:text-cream-300 relative"
+                title="Dashboard Penjual">
+                <i data-feather="settings"></i>
+            </a>
+            <a href="/driver"
+                class="p-2 rounded-full hover:bg-maroon-100 dark:hover:bg-maroon-800 text-green-600 dark:text-green-400 relative"
+                title="Dashboard Driver">
+                <i data-feather="truck"></i>
+            </a>
+            <button onclick="switchTab('history')"
+                class="p-2 rounded-full hover:bg-maroon-100 dark:hover:bg-maroon-800 text-maroon-600 dark:text-cream-300 relative"
+                title="Lihat History Transaksi">
+                <i data-feather="clock"></i>
+            </button>
+            <button onclick="toggleTheme()"
+                class="p-2 rounded-full hover:bg-maroon-100 dark:hover:bg-maroon-800 text-maroon-700 dark:text-cream-300">
+                <i id="theme-icon" data-feather="moon"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- MAIN APP SCREEN -->
+    <main class="flex-1 overflow-y-auto pb-28 relative">
+
+        <!-- EXPLORE -->
+        <div id="tab-explore"
+            class="tab-content active flex-col w-full max-w-5xl mx-auto shadow-sm animate-fade-in px-4 md:px-6 py-6">
+
+            <!-- PREMIUM HERO BANNER -->
+            <div id="home-hero"
+                class="relative w-full h-56 md:h-72 rounded-[2rem] overflow-hidden mb-8 shadow-2xl group">
+                <img id="hero-img-el"
+                    src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200"
+                    class="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110">
+                <div class="absolute inset-0 bg-gradient-to-t from-maroon-900 via-maroon-900/40 to-transparent"></div>
+                <div class="absolute bottom-0 left-0 p-8 w-full md:w-2/3">
+                    <h2 id="hero-title-el"
+                        class="text-3xl md:text-4xl font-black text-cream-50 leading-tight mb-2 drop-shadow-lg">Belanja
+                        Cerdas Lewat AI</h2>
+                    <p id="hero-desc-el"
+                        class="text-sm md:text-base text-cream-100/80 font-medium max-w-md drop-shadow-md">Cari apapun,
+                        pesan langsung, dan biarkan AI kami mengurus semuanya untukmu.</p>
+                </div>
+                <div class="absolute top-6 right-6 flex gap-2">
+                    <span
+                        class="bg-cream-400 text-maroon-900 text-[10px] font-black px-3 py-1 rounded-full shadow-lg animate-pulse">SPECIAL
+                        PROMO</span>
+                </div>
+            </div>
+
+            <!-- BUYER ADDRESS -->
+            <div class="bg-maroon-50 dark:bg-maroon-900/50 p-4 rounded-3xl mb-8 shadow-sm flex items-center gap-4 cursor-pointer hover:bg-maroon-100 dark:hover:bg-maroon-800 transition"
+                title="Ganti Alamat">
+                <div class="bg-white dark:bg-maroon-800 p-3 rounded-full shadow text-maroon-600 dark:text-cream-300"><i
+                        data-feather="map-pin"></i></div>
+                <div>
+                    <p class="text-[10px] font-bold uppercase text-maroon-500 dark:text-cream-400">Buyer Address</p>
+                    <p class="font-bold text-sm">President University, Cikarang Utara</p>
+                </div>
+                <i data-feather="chevron-right" class="ml-auto opacity-50"></i>
+            </div>
+
+            <!-- HISTORY EMBEDDED IN EXPLORE REMOVED -->
+
+
+            <div class="relative mb-6 mt-4">
+                <input id="search-input" type="text" placeholder="Cari 100+ toko. (Mie, Ayam, Kopi...)"
+                    class="w-full bg-white dark:bg-maroon-900 border-2 border-cream-200 dark:border-maroon-700 rounded-full py-4 pl-14 pr-6 text-maroon-900 focus:outline-none focus:border-maroon-500 shadow-sm"
+                    oninput="handleSearch()">
+                <i data-feather="search" class="absolute left-6 top-1/2 -translate-y-1/2 text-maroon-400"></i>
+            </div>
+
+            <h2 id="grid-title" class="text-xl font-bold mb-4 flex items-center gap-2"><i data-feather="thumbs-up"></i>
+                Terdkat & Pilihan (100+ Toko)</h2>
+            <div id="shop-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- DETAILS TAB (Map Integration) -->
+        <div id="tab-details" class="tab-content flex-col p-4 md:p-6 w-full max-w-5xl mx-auto animate-fade-in"></div>
+
+        <!-- CHAT TAB (Agentic AI - "Sellers also kings") -->
+        <div id="tab-chat"
+            class="tab-content flex-col w-full h-full max-w-3xl mx-auto shadow-sm bg-white dark:bg-maroon-900 pb-20">
+            <div id="chat-active" class="flex flex-col h-full w-full relative">
+                <!-- POV Sub Tabs -->
+                <div
+                    class="flex border-b bg-white dark:bg-maroon-900 shrink-0 sticky top-0 z-30 opacity-90 backdrop-blur">
+                    <button onclick="setChatTab('buyer')" id="ctab-buyer"
+                        class="flex-1 py-3 text-sm font-bold text-maroon-600 border-b-2 border-maroon-600 hover:bg-maroon-50 dark:hover:bg-maroon-800 transition px-2">🙎‍♂️
+                        Chat Toko</button>
+                    <button onclick="setChatTab('seller')" id="ctab-seller"
+                        class="flex-1 py-3 text-sm font-bold text-gray-400 border-b-2 border-transparent hover:bg-gray-50 dark:hover:bg-maroon-800 transition px-2">🏪
+                        Chat Seller POV</button>
+                    <button onclick="setChatTab('driver')" id="ctab-driver"
+                        class="flex-1 py-3 text-sm font-bold text-gray-400 border-b-2 border-transparent hover:bg-gray-50 dark:hover:bg-maroon-800 transition px-2">🏍️
+                        Chat Driver</button>
+                </div>
+
+                <!-- Chat Navigation/Contact Metadata -->
+                <div
+                    class="bg-cream-100 dark:bg-maroon-800 p-3 flex justify-between items-center border-b shrink-0 shadow-sm relative z-20">
+                    <div class="flex items-center gap-2">
+                        <button onclick="switchTab('explore')" class="p-1 px-2 hover:bg-white rounded-lg"><i
+                                data-feather="arrow-left" class="w-5 h-5"></i></button>
+                        <div>
+                            <h2 class="font-bold text-[13px] leading-tight text-maroon-900 dark:text-cream-100"
+                                id="chat-header-title">Ruang Chat Transaksi</h2>
+                            <span
+                                class="text-[10px] font-bold text-green-700 bg-green-200 dark:bg-green-900/60 dark:text-green-300 px-2 rounded-full inline-block mt-0.5"
+                                id="chat-header-subtitle">Automated AI Room</span>
+                        </div>
+                    </div>
+                    <!-- Telephone / Short Video -->
+                    <div class="flex gap-1">
+                        <a href="https://wa.me/6282278228037?text=Halo%20saya%20pelanggan%20Find.it%20AI"
+                            target="_blank"
+                            class="bg-green-200 text-green-800 dark:bg-green-900/60 dark:text-green-300 font-bold p-2 rounded-lg flex items-center shadow-sm hover:scale-105 transition"><i
+                                data-feather="phone" class="w-3.5 h-3.5"></i></a>
+                        <button onclick="alert('Short Video Demo (Fitur AI Agent)')"
+                            class="bg-blue-200 text-blue-800 dark:bg-blue-900/60 dark:text-blue-300 font-bold p-2 rounded-lg flex items-center shadow-sm hover:scale-105 transition"><i
+                                data-feather="video" class="w-3.5 h-3.5"></i></button>
+                    </div>
+                </div>
+
+                <!-- Messages Container -->
+                <div id="chat-messages"
+                    class="flex-1 overflow-y-auto w-full p-4 space-y-4 flex flex-col bg-cream-50/50 dark:bg-maroon-900/50">
+                </div>
+
+                <!-- Chat Input Form -->
+                <div
+                    class="p-3 bg-white dark:bg-maroon-800 w-full border-t border-cream-200 dark:border-maroon-700 shrink-0 sticky bottom-0 z-20">
+                    <form id="chat-form" class="flex gap-2 items-center">
+                        <input id="chat-input" type="text" placeholder="Ketik pesan disini..."
+                            class="flex-1 bg-cream-50 dark:bg-maroon-900/60 border-2 border-transparent dark:border-maroon-700 rounded-full px-5 py-3 text-sm focus:outline-none focus:border-maroon-400 dark:focus:border-maroon-600 shadow-inner"
+                            autocomplete="off">
+                        <button type="submit"
+                            class="shrink-0 bg-maroon-600 text-white p-3 rounded-full shadow hover:bg-maroon-700 transition"><i
+                                data-feather="send" class="w-5 h-5 -ml-1"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRACK TAB -->
+        <div id="tab-track" class="tab-content flex-col w-full h-full p-4 md:p-6 max-w-3xl mx-auto animate-fade-in">
+            <div id="track-empty" class="flex-1 flex flex-col items-center justify-center opacity-70">
+                <i data-feather="package" class="w-16 h-16 mb-4"></i>
+                <h2 class="text-xl font-bold">Tidak Ada Pesanan Aktif</h2>
+            </div>
+            <div id="track-active" class="hidden flex-col w-full">
+                <!-- MAP ANIMATION HERE -->
+                <div
+                    class="w-full h-48 bg-cream-100 dark:bg-maroon-800 rounded-3xl overflow-hidden mb-6 relative shadow border border-cream-200 dark:border-maroon-700 flex-shrink-0">
+                    <img src="https://images.unsplash.com/photo-1524661135-423995f22d0b?w=600&h=300&fit=crop"
+                        class="w-full h-full object-cover opacity-60 dark:opacity-40 grayscale">
+
+                    <!-- Route Outline -->
+                    <svg class="absolute inset-0 w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <path d="M 10 70 Q 30 30 60 50 T 90 20" fill="transparent" stroke="#9d2227" stroke-width="1.5"
+                            stroke-dasharray="2,2" vector-effect="non-scaling-stroke" />
+                    </svg>
+
+                    <!-- Store Pin -->
+                    <div
+                        class="absolute left-[10%] top-[70%] -translate-x-1/2 -translate-y-full text-maroon-700 drop-shadow-md">
+                        <i data-feather="home" class="fill-white w-6 h-6"></i>
+                    </div>
+
+                    <!-- Destination Pin -->
+                    <div
+                        class="absolute left-[90%] top-[20%] -translate-x-1/2 -translate-y-full text-maroon-700 drop-shadow-md">
+                        <i data-feather="map-pin" class="fill-white w-6 h-6"></i>
+                    </div>
+
+                    <!-- Motor Bergerak -->
+                    <div id="motorcycle"
+                        class="absolute left-[10%] top-[70%] -translate-x-1/2 -translate-y-1/2 transition-all duration-[6000ms] ease-linear z-10">
+                        <div class="bg-white p-2 text-maroon-600 rounded-full shadow-lg border-2 border-maroon-500">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="7" cy="17" r="3"></circle>
+                                <circle cx="17" cy="17" r="3"></circle>
+                                <path d="M7 17h10"></path>
+                                <path d="M14 6l3 5"></path>
+                                <path d="M5 14l-3-5a2 2 0 0 1 2-2h12l5 7h2"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <h2 class="text-xl font-bold mb-4 text-center">Status Makanan</h2>
+                <div class="bg-white dark:bg-maroon-900 p-6 rounded-2xl shadow flex gap-4 items-center mb-6">
+                    <i data-feather="map-pin" class="text-maroon-500 flex-shrink-0"></i>
+                    <div>
+                        <p class="text-[10px] font-bold text-maroon-500 uppercase">Dikirim Ke Alamat</p>
+                        <p class="font-bold text-sm">President University, Cikarang Utara</p>
+                        <p id="track-time-text" class="text-sm opacity-80 mt-1">Estimasi tiba: <span id="track-minutes"
+                                class="font-bold text-maroon-600">25</span> Menit</p>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-maroon-900 p-6 rounded-2xl border relative">
+                    <div class="absolute w-0.5 bg-cream-200 left-[35px] top-8 bottom-8 z-0"></div>
+                    <div class="flex flex-col gap-6 relative z-10">
+                        <div class="flex gap-4 items-center tracking-step" id="step-1">
+                            <div
+                                class="w-8 h-8 font-bold text-xs bg-maroon-600 text-white rounded-full flex justify-center items-center step-icon px-1">
+                                ✓</div>
+                            <div>
+                                <h4 class="font-bold text-sm">Payment Sukses (AI)</h4>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-center tracking-step opacity-40" id="step-2">
+                            <div
+                                class="w-8 h-8 font-bold text-xs bg-cream-200 text-maroon-900 rounded-full flex justify-center items-center step-icon px-1">
+                                2</div>
+                            <div>
+                                <h4 class="font-bold text-sm">Diproses Toko</h4>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-center tracking-step opacity-40" id="step-3">
+                            <div
+                                class="w-8 h-8 font-bold text-xs bg-cream-200 text-maroon-900 rounded-full flex justify-center items-center step-icon px-1">
+                                3</div>
+                            <div>
+                                <h4 class="font-bold text-sm">Kurir Menuju President Uni</h4>
+                            </div>
+                        </div>
+                        <div class="flex gap-4 items-center tracking-step opacity-40" id="step-4">
+                            <div
+                                class="w-8 h-8 font-bold text-xs bg-cream-200 text-maroon-900 rounded-full flex justify-center items-center step-icon px-1">
+                                4</div>
+                            <div>
+                                <h4 class="font-bold text-sm">Pesanan Tiba</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="fastForwardOrder()"
+                    class="mt-4 mx-auto text-xs font-bold text-maroon-500 opacity-50 hover:opacity-100">[Debug] Percepat
+                    Waktu</button>
+            </div>
+        </div>
+
+        <!-- HISTORY (PAYMENT & ORDER) TAB -->
+        <div id="tab-history"
+            class="tab-content flex-col w-full h-full p-4 md:p-6 max-w-3xl mx-auto shadow-sm animate-fade-in relative z-10">
+            <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                <i data-feather="clock" class="w-5 h-5"></i> Riwayat Pembelian & Pembayaran
+            </h2>
+            <div id="full-history-list" class="flex flex-col gap-4">
+                <div class="p-6 text-center opacity-50 font-bold" id="empty-history-msg">Belum ada riwayat transaksi.
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- CUSTOMIZATION MODAL -->
+    <div id="custom-modal" class="modal fixed inset-0 bg-black/60 z-[100] justify-center items-end md:items-center">
+        <div
+            class="bg-white dark:bg-maroon-900 w-full md:w-[450px] shadow-2xl rounded-t-3xl md:rounded-3xl flex flex-col h-[85vh] md:h-auto max-h-[90vh]">
+            <div class="h-40 overflow-hidden relative shrink-0">
+                <img id="modal-img" src="" class="w-full h-full object-cover">
+                <button onclick="closeModal()" class="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full"><i
+                        data-feather="x"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-1 pb-24 border-b">
+                <h2 id="modal-name" class="text-xl font-bold mb-1">Menu</h2>
+                <div class="flex justify-between items-center pb-4 border-b"><span id="modal-price"
+                        class="font-bold text-lg">Rp 0</span></div>
+
+                <h3 class="font-bold mt-4 mb-2">Jumlah / Quantity</h3>
+                <input type="number" id="modal-qty" value="1" min="1"
+                    class="w-full bg-cream-50 dark:bg-maroon-800 p-2 rounded-lg border">
+
+                <!-- Hanya muncul jika Minuman -->
+                <div id="modal-drink-options" class="hidden">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <h3 class="font-bold mt-4 mb-2">Tingkat Gula</h3>
+                            <select id="modal-sugar"
+                                class="w-full bg-cream-50 dark:bg-maroon-800 p-2 rounded-lg border outline-none mb-2">
+                                <option value="Normal Sugar">Normal Sugar</option>
+                                <option value="Less Sugar">Less Sugar</option>
+                                <option value="No Sugar">No Sugar</option>
+                            </select>
+                        </div>
+                        <div>
+                            <h3 class="font-bold mt-4 mb-2">Tingkat Es</h3>
+                            <select id="modal-ice"
+                                class="w-full bg-cream-50 dark:bg-maroon-800 p-2 rounded-lg border outline-none">
+                                <option value="Normal Ice">Normal Ice</option>
+                                <option value="Less Ice">Less Ice</option>
+                                <option value="No Ice">No Ice</option>
+                            </select>
+                        </div>
+                    </div>
+                    <h3 class="font-bold mt-2 mb-2">Topping Tambahan</h3>
+                    <select id="modal-topping"
+                        class="w-full bg-cream-50 dark:bg-maroon-800 p-2 rounded-lg border outline-none">
+                        <option value="Tanpa Topping">Tanpa Topping</option>
+                        <option value="Boba (+4k)">Boba (+Rp 4.000)</option>
+                        <option value="Oreo Crumb (+4k)">Oreo Crumb (+Rp 4.000)</option>
+                        <option value="Cheese Jelly (+5k)">Cheese Jelly (+Rp 5.000)</option>
+                        <option value="Ice Cream Cone (+6k)">Ice Cream Cone (+Rp 6.000)</option>
+                    </select>
+                </div>
+
+                <h3 class="font-bold mt-4 mb-2">💳 Metode Pembayaran</h3>
+                <select id="modal-payment"
+                    class="w-full bg-cream-50 dark:bg-maroon-800 p-2 rounded-lg border outline-none mb-2">
+                    <optgroup label="💵 Tunai">
+                        <option value="Cash / Tunai">Cash / Tunai</option>
+                    </optgroup>
+                    <optgroup label="📱 E-Wallet">
+                        <option value="GoPay">GoPay</option>
+                        <option value="OVO">OVO</option>
+                        <option value="DANA">DANA</option>
+                        <option value="ShopeePay">ShopeePay</option>
+                        <option value="LinkAja">LinkAja</option>
+                    </optgroup>
+                    <optgroup label="📲 QRIS">
+                        <option value="QRIS">QRIS (Scan QR)</option>
+                    </optgroup>
+                    <optgroup label="🏦 Transfer Bank">
+                        <option value="BCA">Bank BCA</option>
+                        <option value="BNI">Bank BNI</option>
+                        <option value="BRI">Bank BRI</option>
+                        <option value="Mandiri">Bank Mandiri</option>
+                        <option value="BSI">Bank BSI (Syariah)</option>
+                        <option value="CIMB Niaga">CIMB Niaga</option>
+                        <option value="Permata">Bank Permata</option>
+                        <option value="Danamon">Bank Danamon</option>
+                        <option value="BTN">Bank BTN</option>
+                        <option value="Mega">Bank Mega</option>
+                        <option value="OCBC NISP">OCBC NISP</option>
+                    </optgroup>
+                    <optgroup label="🏧 Virtual Account">
+                        <option value="VA BCA">VA BCA</option>
+                        <option value="VA BNI">VA BNI</option>
+                        <option value="VA BRI">VA BRI</option>
+                        <option value="VA Mandiri">VA Mandiri</option>
+                    </optgroup>
+                </select>
+
+                <h3 class="font-bold mt-4 mb-2">Catatan Pesanan</h3>
+                <input type="text" id="modal-notes" placeholder="Contoh: Pisah es, jangan diaduk, dsb..."
+                    class="w-full bg-cream-50 dark:bg-maroon-800 p-2 rounded-lg border">
+            </div>
+            <div class="p-4 shrink-0"><button onclick="confirmCustomOrder()"
+                    class="w-full bg-maroon-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i
+                        data-feather="shopping-cart"></i> Bayar & Pesan Sekarang</button></div>
+        </div>
+    </div>
+
+    <!-- PAYMENT PROCESSING MODAL -->
+    <div id="payment-modal" class="modal fixed inset-0 bg-black/70 z-[110] justify-center items-center">
+        <div class="bg-white dark:bg-maroon-900 w-[90%] max-w-md rounded-3xl p-8 text-center">
+            <div id="pay-processing">
+                <div class="w-16 h-16 border-4 border-maroon-200 border-t-maroon-600 rounded-full mx-auto mb-4"
+                    style="animation: spin 1s linear infinite"></div>
+                <h3 class="text-xl font-black">Memproses Pembayaran</h3>
+                <p id="pay-method-display" class="text-sm text-gray-500 mt-2">Via GoPay</p>
+                <p class="text-xs text-gray-400 mt-1">Mohon tunggu sebentar...</p>
+            </div>
+            <div id="pay-success" class="hidden">
+                <div class="w-16 h-16 bg-green-100 rounded-full mx-auto mb-4 flex items-center justify-center"><i
+                        data-feather="check" class="w-8 h-8 text-green-600"></i></div>
+                <h3 class="text-xl font-black text-green-700">Pembayaran Berhasil!</h3>
+                <p id="pay-amount" class="text-2xl font-black text-maroon-600 mt-2"></p>
+                <button onclick="closePayModal()"
+                    class="mt-4 bg-maroon-600 text-white px-6 py-2 rounded-xl font-bold text-sm">Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RECEIPT / BILL MODAL -->
+    <div id="receipt-modal" class="modal fixed inset-0 bg-black/70 z-[120] justify-center items-center">
+        <div class="bg-white w-[90%] max-w-sm rounded-3xl overflow-hidden shadow-2xl">
+            <div class="bg-maroon-600 text-white p-6 text-center">
+                <h2 class="text-lg font-black">find.it <span class="text-maroon-200">AI</span></h2>
+                <p class="text-xs opacity-70">STRUK PEMBAYARAN</p>
+            </div>
+            <div class="p-6">
+                <div class="border-b border-dashed pb-3 mb-3">
+                    <div class="flex justify-between text-xs"><span class="text-gray-400">No. Transaksi</span><span
+                            id="rcpt-id" class="font-bold"></span></div>
+                    <div class="flex justify-between text-xs mt-1"><span class="text-gray-400">Tanggal</span><span
+                            id="rcpt-date" class="font-bold"></span></div>
+                    <div class="flex justify-between text-xs mt-1"><span class="text-gray-400">Metode</span><span
+                            id="rcpt-method" class="font-bold"></span></div>
+                </div>
+                <div class="border-b border-dashed pb-3 mb-3">
+                    <div class="flex justify-between text-xs"><span class="text-gray-400">Toko</span><span
+                            id="rcpt-store" class="font-bold"></span></div>
+                    <div class="flex justify-between text-xs mt-1"><span class="text-gray-400">Item</span><span
+                            id="rcpt-item" class="font-bold"></span></div>
+                    <div class="flex justify-between text-xs mt-1"><span class="text-gray-400">Qty</span><span
+                            id="rcpt-qty" class="font-bold"></span></div>
+                </div>
+                <div class="border-b border-dashed pb-3 mb-3">
+                    <div class="flex justify-between text-xs"><span class="text-gray-400">Subtotal</span><span
+                            id="rcpt-sub" class="font-bold"></span></div>
+                    <div class="flex justify-between text-xs mt-1"><span class="text-gray-400">Biaya Layanan</span><span
+                            id="rcpt-fee" class="font-bold"></span></div>
+                    <div class="flex justify-between text-xs mt-1"><span class="text-gray-400">Ongkos Kirim</span><span
+                            id="rcpt-shipping" class="font-bold"></span></div>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="font-bold">TOTAL</span>
+                    <span id="rcpt-total" class="text-xl font-black text-maroon-600"></span>
+                </div>
+                <div class="text-center mt-4 text-[10px] text-gray-400">Status: <span
+                        class="text-green-600 font-bold">LUNAS ✅</span></div>
+            </div>
+            <div class="p-4 border-t flex gap-2">
+                <button onclick="closeReceipt()"
+                    class="flex-1 bg-gray-100 text-gray-700 py-2 rounded-xl text-sm font-bold">Tutup</button>
+                <button onclick="printReceipt()"
+                    class="flex-1 bg-maroon-600 text-white py-2 rounded-xl text-sm font-bold">🖨️ Cetak Struk</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DRIVER ASSIGNED POPUP MODAL -->
+    <div id="driver-found-modal" class="modal fixed inset-0 bg-black/70 z-[130] justify-center items-center">
+        <div
+            class="bg-white dark:bg-maroon-900 w-[90%] max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl animate-fade-in relative">
+            <div
+                class="bg-gradient-to-br from-green-500 to-green-600 text-white p-8 text-center relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 opacity-20 rotate-12"><i data-feather="truck"
+                        class="w-24 h-24"></i></div>
+                <div
+                    class="w-20 h-20 bg-white/20 rounded-full mx-auto mb-4 flex items-center justify-center border-4 border-white/30 backdrop-blur-sm">
+                    <i data-feather="user" class="w-10 h-10 text-white"></i>
+                </div>
+                <h2 class="text-2xl font-black">Driver Ditemukan!</h2>
+                <p class="text-[11px] opacity-80 mt-1 uppercase tracking-widest font-black">Mitra Pengantar AGI</p>
+            </div>
+            <div class="p-6">
+                <div class="flex flex-col gap-4">
+                    <div
+                        class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-maroon-800 rounded-[1.5rem] border border-gray-100 dark:border-maroon-700 shadow-sm">
+                        <div class="bg-green-100 dark:bg-green-900/40 p-3 rounded-2xl text-green-600"><i
+                                data-feather="user" class="w-6 h-6"></i></div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Nama Driver</p>
+                            <p class="font-black text-sm dark:text-cream-50" id="pop-driver-name">Jaja Subagja</p>
+                        </div>
+                    </div>
+                    <div
+                        class="flex items-center gap-4 p-4 bg-gray-50 dark:bg-maroon-800 rounded-[1.5rem] border border-gray-100 dark:border-maroon-700 shadow-sm">
+                        <div class="bg-blue-100 dark:bg-blue-900/40 p-3 rounded-2xl text-blue-600"><i
+                                data-feather="shield" class="w-6 h-6"></i></div>
+                        <div>
+                            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Kendaraan & Plat</p>
+                            <p class="font-black text-sm dark:text-cream-50" id="pop-driver-info">Vario • B 5342 CD</p>
+                        </div>
+                    </div>
+                </div>
+                <button onclick="closeDriverFoundModal()"
+                    class="w-full bg-maroon-600 hover:bg-maroon-700 text-white font-black py-4 rounded-[1.5rem] mt-6 shadow-xl shadow-maroon-600/30 transition-all active:scale-95 flex items-center justify-center gap-2">
+                    Mulai Chat & Lacak <i data-feather="arrow-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-maroon-950/95 border-t p-2 z-40">
+        <div class="flex justify-between items-center max-w-sm mx-auto">
+            <button onclick="switchTab('explore')" id="btn-explore"
+                class="flex flex-col items-center p-2 text-maroon-600 font-bold w-20"><i data-feather="search"
+                    class="mb-1"></i><span class="text-[10px]">Go</span></button>
+            <button onclick="switchTab('chat')" id="btn-chat"
+                class="flex flex-col items-center p-2 text-maroon-600/50 w-20"><i data-feather="message-circle"
+                    class="mb-1"></i><span class="text-[10px]">Chat AI</span></button>
+            <button onclick="switchTab('track')" id="btn-track"
+                class="flex flex-col items-center p-2 text-maroon-600/50 w-20"><i data-feather="navigation"
+                    class="mb-1"></i><span class="text-[10px]">Lacak</span></button>
+        </div>
+    </div>
+
+    <script>
+        feather.replace();
+
+        // Database 20 Toko Besar & Puluhan Produk Realistis Tanpa Generasi Acak
+        const BASE_SHOPS = [
+            { id: 1, name: "Kopi Kenangan", t: "Kopi, Minuman", img: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=300", m: ["Kopi Kenangan Mantan (Ice)", "Avocado Coffee (Sweet)", "Americano Hot", "Vanila Latte (Ice)", "Matcha Espresso (Ice)", "Roti Coklat Klasik"] },
+            { id: 2, name: "Janji Jiwa", t: "Kopi, Minuman", img: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=300", m: ["Kopi Susu Senja (Ice)", "Soy Matcha Latte (Ice)", "Caramel Macchiato", "Earl Grey Tea (Ice)", "Americano Hot", "Croast Beef"] },
+            { id: 3, name: "Tomoro Coffee", t: "Kopi Premium", img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300", m: ["Tomoro Aren Latte (Ice)", "Oat Milk Latte (Ice)", "Caffe Mocha (Hot)", "Coconut Aren Latte", "Matcha Oat Frappe", "Choco Croissant"] },
+            { id: 4, name: "Mixue", t: "Es Krim, Minuman", img: "https://images.unsplash.com/photo-1557142046-c704a3adf364?w=300", m: ["Boba Sundae (Sweet)", "Supreme Mixed Milk Tea (Ice)", "Fresh Squeezed Lemonade (Ice)", "Strawberry Mi-Shake", "Berry Bean Sweet Milk"] },
+            { id: 5, name: "TianLala", t: "Es Krim", img: "https://images.unsplash.com/photo-1563805042-7684c8a9e9cb?w=300", m: ["TianLala Berry Ice (Sweet)", "Double Matcha Ice Cream", "Mango Boba Shake", "Classic Boba Tea", "Jumbo Sweet Tea"] },
+            { id: 6, name: "Chatime", t: "Boba", img: "https://images.unsplash.com/photo-1510525032515-d4dff8abcedd?w=300", m: ["Pearl Milk Tea (Sweet)", "Hazelnut Choco Milk Tea", "Mango Green Tea (Ice)", "Brown Sugar Fresh Milk", "Taro Milk Tea (Ice)"] },
+            { id: 7, name: "Starbucks", t: "Kopi Internasional", img: "https://images.unsplash.com/photo-1572442388796-11668a67e53d?w=300", m: ["Vanilla Sweet Cream Cold Brew", "Signature Hot Chocolate", "Caramel Macchiato (Ice)", "Mango Passion Frappuccino", "Beef Quiche"] },
+            { id: 8, name: "Gacoan", t: "Mie Pedas", img: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=300", m: ["Mie Hompimpa Level 3 (Hot)", "Mie Gacoan Level 5 (Hot)", "Es Tuyul (Sweet)", "Udang Keju", "Es Setan (Sweet)"] },
+            { id: 9, name: "Solaria", t: "Fast Casual, Keluarga", img: "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=300", m: ["Nasi Goreng Seafood", "Mie Ayam Pangsit (Hot)", "Bihun Goreng Ayam", "Nasi Capcay Spesial", "Es Lemon Tea (Sweet)"] },
+            { id: 10, name: "Remboelan", t: "Indonesian Soul Food", img: "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=300", m: ["Nasi Bakar Roa (Hot)", "Sop Buntut", "Sate Ayam Madura", "Tahu Telur", "Es Campur Remboelan (Sweet)"] },
+            { id: 11, name: "J.CO Donuts & Coffee", t: "Kue, Kopi", img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=300", m: ["Al Capone Donut 1/2 Lusin", "Jcoccino (Ice)", "Oreology Donut", "Hot Tiramisu Latte", "Glazzy Donut (Sweet)"] },
+            { id: 12, name: "Pizza Hut Delivery", t: "Pizza, Fast Food", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=300", m: ["Meat Lovers Pizza Reguler", "Pepperoni Cheese Burst", "Spaghetti Bolognese (Hot)", "Choco Puff (Sweet)", "Cold Lemon Tea (Ice)"] },
+            { id: 13, name: "KFC", t: "Ayam Goreng", img: "https://images.unsplash.com/photo-1562967914-608f82629710?w=300", m: ["Super Besar 1 (Ayam Original)", "Super Besar 2 (Ayam Spicy/Hot)", "Crispy Burger", "Moccha Float (Sweet)", "French Fries Jumbo"] },
+            { id: 14, name: "Richeese Factory", t: "Ayam Pedas", img: "https://images.unsplash.com/photo-1598514982205-f36b96d1e8d4?w=300", m: ["Fire Chicken Level 3 (Hot)", "Fire Chicken Level 5 (Hot)", "Cheese Sauce Extra", "Pink Lava (Sweet)", "Potato Pom Pom"] },
+            { id: 15, name: "HokBen", t: "Jepang", img: "https://images.unsplash.com/photo-1581781870027-04212e231e96?w=300", m: ["Premium Bento Special 1", "Hoka Hemat 2", "Egg Chicken Roll", "Spicy Ebi Fried (Hot)", "Cold Ocha (Ice)"] },
+            { id: 16, name: "Sushi Tei", t: "Sushi Premium", img: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=300", m: ["Salmon Mentai Roll", "Chuka Idako", "Spicy Tuna Roll (Hot)", "Chicken Teriyaki Bento", "Matcha Ice Cream (Sweet)"] },
+            { id: 17, name: "Sederhana Padang", t: "Nusantara", img: "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=300", m: ["Nasi Rendang Sapi", "Ayam Pop", "Gulai Tunjang", "Ayam Bakar", "Es Teh Tarik"] },
+            { id: 18, name: "Mcdonald's", t: "Cepat Saji", img: "https://images.unsplash.com/photo-1550547660-d9450f859349?w=300", m: ["Paket Panas 1", "Big Mac Burger", "Chicken McNuggets 6pc", "McFlurry Oreo", "Iced Lychee Tea"] }
+        ];
+
+        function getImg(name, isDrink) {
+            let n = name.toLowerCase();
+            if (n.includes('kopi') || n.includes('coffee') || n.includes('latte') || n.includes('brew')) return "https://images.unsplash.com/photo-1559525839-b184a4d698c7?w=150&h=150&fit=crop";
+            if (n.includes('nasi') || n.includes('rice') || n.includes('bento') || n.includes('rendang')) return "https://images.unsplash.com/photo-1603133872878-684f208fb84b?w=150&h=150&fit=crop";
+            if (n.includes('mie') || n.includes('noodle') || n.includes('spaghetti')) return "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=150&h=150&fit=crop";
+            if (n.includes('ayam') || n.includes('chicken') || n.includes('kfc') || n.includes('sate')) return "https://images.unsplash.com/photo-1562967914-608f82629710?w=150&h=150&fit=crop";
+            if (n.includes('burger') || n.includes('mac')) return "https://images.unsplash.com/photo-1550547660-d9450f859349?w=150&h=150&fit=crop";
+            if (n.includes('tea') || n.includes('boba') || n.includes('ocha') || n.includes('tarik')) return "https://images.unsplash.com/photo-1510525032515-d4dff8abcedd?w=150&h=150&fit=crop";
+            if (n.includes('ice') || n.includes('es') || n.includes('sundae') || n.includes('float') || n.includes('mcflurry')) return "https://images.unsplash.com/photo-1557142046-c704a3adf364?w=150&h=150&fit=crop";
+            if (n.includes('pizza')) return "https://images.unsplash.com/photo-1513104890138-7c749659a591?w=150&h=150&fit=crop";
+            if (n.includes('sushi') || n.includes('roll')) return "https://images.unsplash.com/photo-1579871494447-9811cf80d66c?w=150&h=150&fit=crop";
+            if (n.includes('donut') || n.includes('kue') || n.includes('croissant')) return "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=150&h=150&fit=crop";
+            return isDrink ? "https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=150&h=150&fit=crop" : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=150&h=150&fit=fit=crop";
+        }
+
+        let ALL_SHOPS = [];
+
+        function initShops() {
+            const studioShops = JSON.parse(localStorage.getItem('webkita_studio_shops') || '[]');
+            if (studioShops.length > 0) {
+                ALL_SHOPS = studioShops.map(s => ({
+                    ...s,
+                    id: s.id || Math.random(),
+                    type: s.t || "General",
+                    menu: [
+                        { name: "Best Seller Item", price: "25k", pval: 25, rating: "4.9", img: s.img }
+                    ],
+                    map: `https://maps.google.com/maps?q=${encodeURIComponent(s.name)}&t=&z=14&ie=UTF8&iwloc=&output=embed`
+                }));
+            } else {
+                const PLACES = ["Cikarang", "Jababeka", "Lemahabang", "Tarum Barat", "Pilar", "Lippo", "SGC", "Cibitung", "Cibarusah", "Deltamas"];
+                for (let j = 0; j < 82; j++) {
+                    let rndBase = BASE_SHOPS[j % BASE_SHOPS.length];
+                    let newName = `${rndBase.name} ${PLACES[j % PLACES.length]}`;
+                    ALL_SHOPS.push({
+                        id: 100 + j, name: newName, type: rndBase.t, img: rndBase.img,
+                        menu: rndBase.m.map(mx => ({
+                            name: mx, price: Math.floor(Math.random() * 20 + 15) + "k", pval: Math.floor(Math.random() * 20 + 15), rating: (Math.random() * 0.5 + 4.5).toFixed(1),
+                            isDrink: !!mx.toLowerCase().match(/(es|ice|sweet|manis|kopi|coffee|latte|tea|milk|boba|drink|jeruk|ocha|float|brew)/),
+                            img: getImg(mx, !!mx.toLowerCase().match(/(es|ice|sweet|manis|kopi|coffee|latte|tea|milk|boba|drink|jeruk|ocha|float|brew)/))
+                        })),
+                        map: `https://maps.google.com/maps?q=${encodeURIComponent(newName)}&t=&z=14&ie=UTF8&iwloc=&output=embed`
+                    });
+                }
+                BASE_SHOPS.forEach((s) => {
+                    const menuObjects = s.m.map((mt) => {
+                        let isDrink = mt.toLowerCase().match(/(es|ice|sweet|manis|kopi|coffee|latte|tea|milk|boba|drink|jeruk|ocha|float|brew)/);
+                        return { name: mt, price: Math.floor(Math.random() * 20 + 15) + "k", pval: Math.floor(Math.random() * 20 + 15), rating: (Math.random() * 0.5 + 4.5).toFixed(1), isDrink: !!isDrink, img: getImg(mt, !!isDrink) }
+                    });
+                    ALL_SHOPS.push({ id: s.id, name: `${s.name} Pusat`, type: s.t, img: s.img, menu: menuObjects, map: `https://maps.google.com/maps?q=${encodeURIComponent(s.name)}&t=&z=14&ie=UTF8&iwloc=&output=embed` });
+                });
+            }
+        }
+        initShops();
+
+        let theme = localStorage.getItem('theme') || 'light';
+        let actTab = 'explore';
+        let selShop = null;
+        let activeItem = null;
+        let chatPov = 'buyer';
+
+        // Persisted Flow State
+        let orderStage = parseInt(localStorage.getItem('active_order_stage') || '0');
+        let msgsSellerBuyer = JSON.parse(localStorage.getItem('seller_buyer_messages') || '[]');
+        let msgsDriver = JSON.parse(localStorage.getItem('driver_messages') || '[]');
+        let lastOrderedStore = localStorage.getItem('last_ordered_store') || '';
+        let lastOrderedItem = localStorage.getItem('last_ordered_item') || '';
+        let lastTotal = parseInt(localStorage.getItem('last_total') || '0');
+        let driverReplyCount = parseInt(localStorage.getItem('driver_reply_count') || '0');
+        let trInterval = null;
+        window.arrivalNotified = localStorage.getItem('arrival_notified') === 'true';
+
+        function syncSellerBuyerChat() { localStorage.setItem('seller_buyer_messages', JSON.stringify(msgsSellerBuyer)); }
+        function syncOrderToDriver() {
+            localStorage.setItem('driver_messages', JSON.stringify(msgsDriver));
+            localStorage.setItem('arrival_notified', window.arrivalNotified);
+            localStorage.setItem('driver_reply_count', driverReplyCount);
+        }
+
+        // Driver Info Data
+        const driverNameStr = "Jaja Subagja (Mitra AGI)";
+        const driverPlatStr = "Vario • B 5342 CD";
+
+        function closeDriverFoundModal() {
+            document.getElementById('driver-found-modal').classList.remove('active');
+            setChatTab('driver');
+            showNotify("Driver Menuju Lokasi", "Estimasi tiba dalam 10 detik! 🏍️");
+
+            // RESET DRIVER CHAT FOR NEW ORDER
+            msgsDriver = [{ sender: 'system', text: `Driver berhasil ditugaskan!` }];
+            driverReplyCount = 0;
+            renderChat();
+
+            // JEDA AGAR TIDAK TUMBURAN (Driver Greet first)
+            setTimeout(() => {
+                msgsDriver.push({ sender: 'driver', text: `Halo kak! Saya **Pak Jaja**. Pesanan Anda sudah saya ambil dan sekarang sedang dalam perjalanan ya. Mohon ditunggu! 🏍️💨` });
+                renderChat(); syncOrderToDriver();
+            }, 1200);
+
+            // JUMP TO STAGE 3 (Kurir Menuju)
+            orderStage = 3;
+            localStorage.setItem('active_order_stage', orderStage);
+            updateTracker();
+            advanceOrderStage(7500);
+        }
+
+        function giveRating(stars) {
+            showNotify("Rating Berhasil!", `Terima kasih! Kamu memberikan bintang ${stars} untuk pelayanan kami. ⭐`);
+            msgsDriver.push({ sender: 'system', text: `Rating Berhasil: ⭐ ${stars}/5` });
+            renderChat();
+            setTimeout(() => {
+                msgsDriver.push({ sender: 'driver', text: "Terima kasih banyak kak atas ratingnya! Sangat membantu performa saya. Sampai jumpa lagi! 👋😊" });
+                renderChat();
+                syncOrderToDriver();
+            }, 1000);
+        }
+
+        function toggleTheme() { theme = theme === 'light' ? 'dark' : 'light'; document.documentElement.classList.toggle('dark'); localStorage.setItem('theme', theme); }
+        if (theme === 'dark') document.documentElement.classList.add('dark');
+
+        function switchTab(t) {
+            actTab = t;
+            document.querySelectorAll('.tab-content').forEach(e => e.classList.remove('active'));
+            document.getElementById(`tab-${t}`).classList.add('active');
+            ['explore', 'chat', 'track'].forEach(b => {
+                const el = document.getElementById(`btn-${b}`);
+                if (el) {
+                    if (b === t) { el.classList.replace('text-maroon-600/50', 'text-maroon-600'); el.classList.add('font-bold'); }
+                    else { el.classList.replace('text-maroon-600', 'text-maroon-600/50'); el.classList.remove('font-bold'); }
+                }
+            });
+            if (t === 'chat') {
+                setChatTab(chatPov);
+            }
+            if (t === 'track') renderTrack();
+        }
+
+        function handleSearch() {
+            const val = document.getElementById('search-input').value.toLowerCase();
+            const grid = document.getElementById('shop-grid'); grid.innerHTML = '';
+
+            // Limit render to 12 when there is no search value to not overload UI
+            let filtered = ALL_SHOPS.filter(shop => {
+                if (!val) return true;
+                const matchShop = shop.name.toLowerCase().includes(val) || shop.type.toLowerCase().includes(val);
+                const matchMenu = shop.menu.some(m => m.name.toLowerCase().includes(val));
+                return matchShop || matchMenu;
+            });
+
+            let displayShops = val ? filtered : filtered.slice(0, 15); // Show first 15 if empty
+
+            const titleEl = document.getElementById('grid-title');
+            if (titleEl) {
+                if (val) {
+                    titleEl.innerHTML = `<i data-feather="search"></i> Pencarian: "${val}" (${filtered.length} Ditemukan)`;
+                } else {
+                    titleEl.innerHTML = `<i data-feather="thumbs-up"></i> Terdekat & Pilihan (100+ Toko)`;
+                }
+                feather.replace();
+            }
+
+            if (displayShops.length === 0) {
+                grid.innerHTML = `<div class="col-span-full p-10 text-center opacity-60 flex flex-col items-center justify-center">
+                    <i data-feather="frown" class="w-12 h-12 mb-3"></i>
+                    <h4 class="font-bold text-lg">Maaf, "${val}" tidak ditemukan.</h4>
+                    <p class="text-sm mt-1">Sistem sedang merilis toko baru tiap harinya!</p>
+                </div>`;
+                feather.replace();
+                return;
+            }
+
+            displayShops.forEach(shop => {
+                grid.insertAdjacentHTML('beforeend', `
+                    <div onclick="openShop(${shop.id})" class="bg-white dark:bg-maroon-900 border border-cream-200 dark:border-maroon-700 rounded-3xl overflow-hidden cursor-pointer shadow-sm hover:shadow-md transition">
+                        <div class="h-32 relative"><img src="${shop.img}" class="w-full h-full object-cover"></div>
+                        <div class="p-4">
+                            <h3 class="font-bold text-base truncate">${shop.name}</h3>
+                            <p class="text-[11px] font-semibold text-maroon-600 dark:text-cream-400 mt-1">${shop.type} • 🚀 Diskon Ongkir</p>
+                        </div>
+                    </div>`);
+            });
+        }
+        handleSearch();
+
+        function openShop(id) {
+            selShop = ALL_SHOPS.find(s => s.id === id);
+            const menuHtml = selShop.menu.map(m => `
+                <div onclick='openCustomizer(${JSON.stringify(m).replace(/'/g, "&#39;")})' class="flex justify-between items-center p-4 border border-cream-200 dark:border-maroon-700 bg-white dark:bg-maroon-900 rounded-2xl mb-3 cursor-pointer hover:shadow-md transition">
+                    <div>
+                        <h4 class="font-bold text-sm text-maroon-900 dark:text-cream-50">${m.name}</h4>
+                        <span class="text-[10px] bg-yellow-100 text-yellow-800 px-2 mt-1 inline-block rounded-full">⭐ ${m.rating}</span>
+                    </div>
+                    <span class="font-bold text-maroon-700 dark:text-cream-300 ml-4 shrink-0">${m.price}</span>
+                </div>
+            `).join('');
+            document.getElementById('tab-details').innerHTML = `
+                <button onclick="switchTab('explore')" class="flex gap-2 font-bold opacity-70 mb-4 hover:opacity-100"><i data-feather="arrow-left"></i> Kembali</button>
+                <div class="w-full h-48 rounded-[2rem] overflow-hidden mb-6 shadow-xl"><img src="${selShop.img}" class="w-full h-full object-cover"></div>
+                <h3 class="text-xl font-black mb-4 flex items-center gap-2 px-2"><i data-feather="map-pin" class="text-maroon-600"></i> Lokasi Toko</h3>
+                <div class="w-full h-48 border border-maroon-100 dark:border-maroon-700 rounded-[2rem] overflow-hidden mb-8 shadow-inner"><iframe src="${selShop.map}" width="100%" height="100%" style="border:0;" loading="lazy"></iframe></div>
+                <h3 class="text-xl font-black mb-4 flex items-center gap-2 px-2"><i data-feather="grid" class="text-maroon-600"></i> Menu Pilihan</h3>
+                <div class="space-y-1">${menuHtml}</div>
+                <button onclick="initAI()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-5 rounded-[2rem] mt-8 flex items-center justify-center gap-3 transition-all shadow-xl shadow-blue-600/20 active:scale-95">
+                    <i data-feather="cpu"></i> Pesan via AI Assistant
+                </button>
+            `;
+            feather.replace(); switchTab('details');
+        }
+
+        function openCustomizer(item) {
+            activeItem = item;
+            document.getElementById('modal-name').innerText = item.name;
+            document.getElementById('modal-price').innerText = "Rp " + item.pval + ".000";
+            document.getElementById('modal-img').src = item.img;
+            const drinkOpts = document.getElementById('modal-drink-options');
+            if (item.isDrink) { drinkOpts.classList.remove('hidden'); } else { drinkOpts.classList.add('hidden'); }
+            document.getElementById('custom-modal').classList.add('active');
+        }
+        function closeModal() { document.getElementById('custom-modal').classList.remove('active'); }
+        let savedPaymentMethod = "Cash";
+
+        function confirmCustomOrder() {
+            closeModal();
+            const qty = document.getElementById('modal-qty').value;
+            savedPaymentMethod = document.getElementById('modal-payment').value;
+            document.getElementById('pay-method-display').innerText = `Via ${savedPaymentMethod}`;
+            document.getElementById('payment-modal').classList.add('active');
+            document.getElementById('pay-processing').classList.remove('hidden');
+            document.getElementById('pay-success').classList.add('hidden');
+
+            let strExtras = ""; let basePrice = activeItem.pval;
+            if (activeItem.isDrink) {
+                const sgr = document.getElementById('modal-sugar').value;
+                const ice = document.getElementById('modal-ice').value;
+                const top = document.getElementById('modal-topping').value;
+                strExtras = `(${sgr}, ${ice}, ${top})`;
+                if (top.includes('+')) { basePrice += parseInt(top.match(/\+(\d+)/)[1]); }
+            }
+            let tAmt = basePrice * parseInt(qty); lastTotal = tAmt;
+            setTimeout(() => {
+                document.getElementById('pay-processing').classList.add('hidden');
+                document.getElementById('pay-success').classList.remove('hidden');
+                document.getElementById('pay-amount').innerText = `Rp ${tAmt}.000`;
+                const orderId = 'TRX-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+                const receiptData = { id: orderId, date: new Date().toLocaleString('id-ID'), method: savedPaymentMethod, store: selShop.name, item: activeItem.name + (strExtras ? " " + strExtras : ""), qty: qty, sub: `Rp ${tAmt}.000`, fee: 'Rp 2.000', shipping: 'Rp 0', total: `Rp ${tAmt + 2}.000` };
+                const history = JSON.parse(localStorage.getItem('purchase_history') || '[]');
+                history.unshift(receiptData); localStorage.setItem('purchase_history', JSON.stringify(history));
+
+                // DETAILED ORDER INFO IN CHAT (LENGKAP)
+                const summaryCard = `
+                    <div class="bg-gray-50 dark:bg-maroon-900/50 p-5 rounded-3xl border-2 border-dashed border-maroon-200 dark:border-maroon-700 mt-2 text-left shadow-inner">
+                        <p class="font-black text-[10px] text-maroon-600 uppercase tracking-[0.2em] mb-4 text-center border-b pb-2">Struk Transaksi Digital</p>
+                        <div class="space-y-2.5 text-[11px]">
+                            <div class="flex justify-between"><span>ID Order:</span><span class="font-black">${orderId}</span></div>
+                            <div class="flex justify-between"><span>Toko:</span><span class="font-bold">${selShop.name}</span></div>
+                            <div class="flex justify-between"><span>Item:</span><span class="font-bold">${activeItem.name} ${strExtras}</span></div>
+                            <div class="flex justify-between"><span>Kuantitas:</span><span class="font-bold">${qty} Porsi/Item</span></div>
+                            <div class="flex justify-between"><span>Pembayaran:</span><span class="font-black text-blue-600 uppercase">${savedPaymentMethod}</span></div>
+                            <div class="flex justify-between"><span>Status:</span><span class="text-green-600 font-black">LUNAS ✅</span></div>
+                            <div class="border-t border-maroon-100 dark:border-maroon-800 pt-2.5 mt-2 flex justify-between font-black text-base">
+                                <span class="text-xs">TOTAL BAYAR:</span><span class="text-maroon-600">Rp ${tAmt + 2}.000</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                msgsSellerBuyer.push({ sender: 'system', text: `💳 PEMBAYARAN BERHASIL!\n${summaryCard}` });
+                msgsSellerBuyer.push({ sender: 'system', text: `💡 **PETUNJUK PRESENTASI**:\n1. Klik tab **[🏪 Chat Seller POV]**\n2. Ketik balasan manual (sebagai Penjual)\n3. Driver akan langsung muncul di layar.` });
+
+                localStorage.setItem('last_ordered_store', selShop.name);
+                localStorage.setItem('last_ordered_item', activeItem.name + (strExtras ? " " + strExtras : ""));
+                localStorage.setItem('last_total', tAmt + 2);
+                localStorage.setItem('last_order_id', orderId);
+
+                // RESET STATE FOR NEW ORDER
+                window.arrivalNotified = false;
+                msgsDriver = [];
+                syncOrderToDriver();
+
+                syncSellerBuyerChat(); renderChat(); addHistoryEntry(receiptData);
+                orderStage = 1;
+                localStorage.setItem('active_order_stage', orderStage);
+                updateTracker(); // DON'T ADVANCE AUTOMATICALLY HERE! Wait for Seller.
+
+                setTimeout(() => { switchTab('chat'); setChatTab('buyer'); }, 1500);
+            }, 2000);
+        }
+
+        function startDriverSearch(orderId, storeName, itemDesc) {
+            const dName = "Jaja Subagja (Mitra AGI)";
+            const dInfo = "Honda Vario • B 5342 CD";
+            document.getElementById('pop-driver-name').innerText = dName;
+            document.getElementById('pop-driver-info').innerText = dInfo;
+            document.getElementById('driver-found-modal').classList.add('active');
+            feather.replace();
+
+            const activeOrder = { id: orderId, store: storeName, status: 'Menuju Lokasi', driver: dName, vehicle: dInfo };
+            localStorage.setItem('active_delivery', JSON.stringify(activeOrder));
+        }
+
+        function closeDriverFoundModal() {
+            document.getElementById('driver-found-modal').classList.remove('active');
+            setChatTab('driver');
+            showNotify("Driver Meluncur", "Estimasi tiba dalam 10 detik.");
+            orderStage = 2;
+            advanceOrderStage(4500);
+            setTimeout(() => { orderStage = 4; advanceOrderStage(0); }, 9000);
+        }
+
+        function closePayModal() { document.getElementById('payment-modal').classList.remove('active'); switchTab('chat'); }
+        function showReceipt(data) {
+            document.getElementById('rcpt-id').innerText = data.id; document.getElementById('rcpt-date').innerText = data.date;
+            document.getElementById('rcpt-method').innerText = data.method; document.getElementById('rcpt-store').innerText = data.store;
+            document.getElementById('rcpt-item').innerText = data.item; document.getElementById('rcpt-qty').innerText = data.qty;
+            document.getElementById('rcpt-sub').innerText = data.sub; document.getElementById('rcpt-fee').innerText = data.fee;
+            document.getElementById('rcpt-shipping').innerText = data.shipping; document.getElementById('rcpt-total').innerText = data.total;
+            document.getElementById('receipt-modal').classList.add('active');
+        }
+        function closeReceipt() { document.getElementById('receipt-modal').classList.remove('active'); }
+        function printReceipt() { window.print(); }
+
+        function setChatTab(pov) {
+            chatPov = pov;
+            ['buyer', 'seller', 'driver'].forEach(p => {
+                const el = document.getElementById('ctab-' + p); if (!el) return;
+                el.className = (pov === p) ? 'flex-1 py-3 text-[11px] font-black text-maroon-600 border-b-4 border-maroon-600 bg-white dark:bg-maroon-900 transition-all' : 'flex-1 py-3 text-[11px] font-bold text-gray-400 border-b-4 border-transparent hover:bg-gray-50 dark:hover:bg-maroon-800 transition-all opacity-60';
+            });
+            const inputEl = document.getElementById('chat-input');
+            const headerTitle = document.getElementById('chat-header-title');
+            if (inputEl && headerTitle) {
+                if (pov === 'driver') { headerTitle.innerText = "Mitra Driver Jaja"; inputEl.placeholder = "Ketik ke Driver..."; }
+                else if (pov === 'seller') { headerTitle.innerText = "Toko (Seller POV)"; inputEl.placeholder = "Balas Pembeli..."; }
+                else { headerTitle.innerText = "Chat Toko"; inputEl.placeholder = "Ketik pesan..."; }
+            }
+            renderChat();
+        }
+
+        function giveRating(stars) {
+            showNotify("Rating Berhasil!", `Bintang ${stars} terkirim. ⭐`);
+            msgsDriver.push({ sender: 'system', text: `Rating Berhasil: ⭐ ${stars}/5` });
+            renderChat();
+            setTimeout(() => {
+                msgsDriver.push({ sender: 'driver', text: "Terima kasih banyak kak! Sampai jumpa lagi! 👋😊" });
+                renderChat(); syncOrderToDriver();
+            }, 1000);
+        }
+
+        function renderChat() {
+            const container = document.getElementById('chat-messages'); if (!container) return; container.innerHTML = '';
+            let targetMsgs = chatPov === 'driver' ? msgsDriver : msgsSellerBuyer;
+            targetMsgs.forEach(m => {
+                let isMe = (chatPov === 'buyer' && m.sender === 'buyer') || (chatPov === 'seller' && m.sender === 'seller') || (chatPov === 'driver' && m.sender === 'buyer');
+                let align = m.sender === 'system' ? 'justify-center' : (isMe ? 'justify-end' : 'justify-start');
+                let bColor = m.sender === 'system' ? 'bg-green-50 text-green-700 border border-green-200 text-[10px] font-black px-4 py-1 rounded-full' : (isMe ? 'bg-maroon-600 text-white rounded-[1.5rem] rounded-br-none shadow-md shadow-maroon-600/20' : 'bg-white border dark:bg-maroon-800 dark:text-cream-50 rounded-[1.5rem] rounded-bl-none shadow-sm');
+                let msgText = m.text.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+                if (msgText.includes('{RATING_UI}')) {
+                    msgText = msgText.replace('{RATING_UI}', `<div class="flex flex-col items-center gap-4 mt-4 bg-yellow-50 dark:bg-maroon-950 p-6 rounded-[2rem] border-2 border-dashed border-yellow-400"><p class="font-black text-[10px] text-yellow-700 uppercase tracking-widest">Beri Rating Driver</p><div class="flex gap-2">${[1, 2, 3, 4, 5].map(s => `<button onclick="giveRating(${s})" class="text-4xl hover:scale-125 transition-transform active:scale-90 shadow-sm">⭐</button>`).join('')}</div></div>`);
+                }
+                container.insertAdjacentHTML('beforeend', `<div class="flex w-full ${align} mb-3 animate-fade-in"><div class="max-w-[85%] p-4 text-sm whitespace-pre-wrap ${bColor}">${msgText}</div></div>`);
+            });
+            container.scrollTop = container.scrollHeight;
+        }
+
+        document.getElementById('chat-form').onsubmit = (e) => {
+            e.preventDefault();
+            const input = document.getElementById('chat-input'); const txt = input.value.trim(); if (!txt) return;
+            if (chatPov === 'driver') {
+                msgsDriver.push({ sender: 'buyer', text: txt }); input.value = ''; renderChat();
+
+                const isArrivalConf = txt.toLowerCase().match(/(terima|sudah|ambil|sampai|oke|makasih|siap|sipp|baik|langsung|ok|thx)/);
+
+                if (orderStage >= 4 && isArrivalConf) {
+                    setTimeout(() => {
+                        msgsDriver.push({ sender: 'driver', text: "Sama-sama kak! Boleh minta bantuan rating pelayanan saya bintang 5-nya? Sangat membantu performa saya kak. 🙏😊\n\n{RATING_UI}" });
+                        renderChat(); syncOrderToDriver();
+                    }, 1200);
+                } else if (orderStage < 4) {
+                    driverReplyCount++;
+                    setTimeout(() => {
+                        if (driverReplyCount === 1) {
+                            const iDesc = localStorage.getItem('last_ordered_item') || "Pesanan";
+                            msgsDriver.push({ sender: 'driver', text: `Iya kak, ini detailnya. Saya pastikan aman sampai tujuan!\n\n<div class="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-2xl border border-blue-100 dark:border-blue-800 text-[10px]"><p class="font-bold mb-1">INFO PENGIRIMAN:</p>📍 President Uni<br>📦 Item: ${iDesc}<br>🛡️ Find.it Protection</div>` });
+                        } else {
+                            processAIDriverReq(txt);
+                        }
+                        renderChat(); syncOrderToDriver();
+                    }, 1000);
+                }
+                syncOrderToDriver();
+            } else if (chatPov === 'seller') {
+                msgsSellerBuyer.push({ sender: 'seller', text: txt }); input.value = ''; syncSellerBuyerChat(); renderChat();
+                if (orderStage === 1) {
+                    // Move to Stage 2 (Diproses Toko) immediately
+                    orderStage = 2;
+                    localStorage.setItem('active_order_stage', orderStage);
+                    updateTracker();
+
+                    const sName = localStorage.getItem('last_ordered_store') || "Toko";
+                    const iDesc = localStorage.getItem('last_ordered_item') || "Pesanan";
+                    const oId = localStorage.getItem('last_order_id') || "TRX-DEMO";
+                    setTimeout(() => { startDriverSearch(oId, sName, iDesc); }, 500);
+                }
+            } else {
+                msgsSellerBuyer.push({ sender: 'buyer', text: txt }); input.value = ''; syncSellerBuyerChat(); renderChat();
+                if (orderStage === 1) {
+                    setTimeout(() => {
+                        msgsSellerBuyer.push({ sender: 'system', text: "💡 **PETUNJUK PRESENTASI**: Agar demo berjalan, silakan klik tab **[Chat Seller POV]** di atas dan **balas chat ini manual** (seolah-olah kamu penjual)." });
+                        syncSellerBuyerChat(); renderChat();
+                    }, 800);
+                }
+            }
+        };
+
+        function processAIDriverReq(text) {
+            if (orderStage >= 4) return;
+            setTimeout(() => { msgsDriver.push({ sender: 'driver', text: "Siap laksanakan kak, pesanan segera sampai!" }); renderChat(); syncOrderToDriver(); }, 800);
+        }
+
+        function addHistoryEntry(data) {
+            const list = document.getElementById('full-history-list');
+            const h = `<div class="bg-white dark:bg-maroon-900 p-5 rounded-[2rem] border border-maroon-50 dark:border-maroon-800 flex items-center justify-between shadow-sm mb-4"><div class="text-left"><p class="font-black text-sm">${data.store}</p><p class="text-[10px] opacity-40 font-bold mt-1">${data.date}</p></div><button onclick='showReceipt(${JSON.stringify(data).replace(/'/g, "&#39;")})' class="bg-blue-600 text-white font-black px-5 py-2 rounded-2xl text-[10px] shadow-lg shadow-blue-600/20 active:scale-95 transition-all">STRUK</button></div>`;
+            if (list) {
+                const empty = document.getElementById('empty-history-msg'); if (empty) empty.classList.add('hidden');
+                list.insertAdjacentHTML('afterbegin', h);
+            }
+        }
+
+        // Load existing history on start
+        function loadPurchaseHistory() {
+            const history = JSON.parse(localStorage.getItem('purchase_history') || '[]');
+            history.forEach(item => addHistoryEntry(item));
+        }
+        loadPurchaseHistory();
+
+        function renderTrack() {
+            if (!orderStage) { document.getElementById('track-empty').classList.remove('hidden'); document.getElementById('track-active').classList.add('hidden'); return; }
+            document.getElementById('track-empty').classList.add('hidden'); document.getElementById('track-active').classList.remove('hidden');
+            updateTracker();
+        }
+
+        function advanceOrderStage(ms = 8000) {
+            localStorage.setItem('active_order_stage', orderStage); updateTracker(); clearTimeout(trInterval);
+            if (orderStage < 4 && ms > 0) { trInterval = setTimeout(() => { orderStage++; advanceOrderStage(ms); }, ms); }
+        }
+
+        function updateTracker() {
+            const activeClass = "w-8 h-8 font-black text-[10px] bg-maroon-600 text-white rounded-full flex justify-center items-center ring-4 ring-maroon-600/20";
+            const doneClass = "w-8 h-8 font-black text-[10px] bg-green-500 text-white rounded-full flex justify-center items-center shadow-lg shadow-green-500/20";
+
+            let minutes = "25";
+            if (orderStage === 2) minutes = "15";
+            if (orderStage === 3) minutes = "5";
+            if (orderStage >= 4) minutes = "0";
+
+            const timerEl = document.getElementById('track-minutes');
+            if (timerEl) timerEl.innerText = minutes;
+
+            const timeTextEl = document.getElementById('track-time-text');
+            if (timeTextEl) {
+                if (orderStage >= 4) timeTextEl.innerHTML = `<span class="text-green-600 font-black">Pesanan Tiba! Driver sedang menunggu.</span>`;
+                else timeTextEl.innerHTML = `Estimasi tiba: <span class="font-black text-maroon-600">${minutes}</span> Menit`;
+            }
+
+            for (let i = 1; i <= 4; i++) {
+                const el = document.getElementById(`step-${i}`); if (!el) continue;
+
+                if (orderStage >= i) {
+                    el.classList.remove('opacity-30');
+                    const icon = el.querySelector('.step-icon');
+                    if (icon) {
+                        icon.className = (orderStage > i ? doneClass : activeClass) + " step-icon";
+                        icon.innerHTML = orderStage > i ? "✓" : i;
+                    }
+                } else {
+                    el.classList.add('opacity-30');
+                    const icon = el.querySelector('.step-icon');
+                    if (icon) {
+                        icon.className = "w-8 h-8 font-bold text-xs bg-cream-200 text-maroon-600 rounded-full flex justify-center items-center step-icon px-1";
+                        icon.innerHTML = i;
+                    }
+                }
+            }
+
+            // Hint for Seller Reply
+            const trackActive = document.getElementById('track-active');
+            if (trackActive) {
+                let hint = document.getElementById('seller-hint');
+                if (orderStage === 1) {
+                    if (!hint) {
+                        trackActive.insertAdjacentHTML('beforeend', `<div id="seller-hint" class="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-2xl flex items-center gap-3 animate-bounce"><i data-feather="info" class="text-yellow-600"></i><p class="text-[11px] font-bold text-yellow-700 uppercase">Menunggu Toko... Silakan balas chat di tab [Seller POV]</p></div>`);
+                        feather.replace();
+                    }
+                } else if (hint) { hint.remove(); }
+            }
+
+            if (orderStage >= 4 && !window.arrivalNotified) {
+                window.arrivalNotified = true;
+                setTimeout(() => {
+                    msgsDriver.push({ sender: 'driver', text: `Halo kak, saya sudah sampai di depan ya! Mohon ambil pesanannya. 🙏📦` });
+                    renderChat(); syncOrderToDriver(); showNotify("Pesanan Tiba!", "Driver sudah sampai.");
+                }, 1000);
+            }
+            let motor = document.getElementById('motorcycle');
+            if (motor) {
+                motor.style.transition = 'all 3s cubic-bezier(0.4, 0, 0.2, 1)';
+                if (orderStage <= 1) motor.style.left = '10%';
+                else if (orderStage === 2) motor.style.left = '35%';
+                else if (orderStage === 3) motor.style.left = '65%';
+                else motor.style.left = '90%';
+            }
+        }
+    </script>
+
+    <!-- CUSTOMER SERVICE FLOATING BUTTON -->
+    <div class="fixed bottom-6 right-6 z-[60] flex flex-col items-end gap-3">
+        <div id="cs-chat-bubble"
+            class="hidden w-80 bg-white rounded-3xl shadow-2xl border overflow-hidden fade-in flex flex-col">
+            <div class="bg-maroon-600 p-4 text-white flex justify-between items-center">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center"><i
+                            data-feather="headphones" class="w-4 h-4"></i></div>
+                    <div>
+                        <p class="text-xs font-bold leading-none">Find.it AI Support</p>
+                        <p class="text-[10px] opacity-70 mt-1">Selalu Online</p>
+                    </div>
+                </div>
+                <button onclick="toggleCsChat()"><i data-feather="x" class="w-4 h-4"></i></button>
+            </div>
+            <div id="cs-chat-logs" class="h-64 overflow-y-auto p-4 space-y-3 bg-gray-50 text-xs">
+                <div class="flex justify-start">
+                    <div class="bg-white p-3 rounded-2xl rounded-tl-none border shadow-sm max-w-[85%]">
+                        <p class="text-gray-600">Halo! Saya **Find.it AI Support**. Ada yang bisa saya bantu terkait
+                            pesanan atau fitur aplikasi?</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-3 border-t bg-white flex gap-2">
+                <input id="cs-input" type="text" placeholder="Tanya CS..."
+                    class="flex-1 border rounded-full px-4 py-2 text-xs focus:outline-none focus:border-maroon-400">
+                <button onclick="askCsAi()" class="bg-maroon-600 text-white p-2 rounded-full shadow-lg"><i
+                        data-feather="send" class="w-3 h-3"></i></button>
+            </div>
+        </div>
+        <button id="cs-toggle-btn" onclick="toggleCsChat()"
+            class="w-14 h-14 bg-maroon-600 text-white rounded-full shadow-2xl flex items-center justify-center hover:scale-110 active:scale-95 transition-all group">
+            <i data-feather="headphones" class="w-6 h-6 group-hover:hidden"></i>
+            <i data-feather="message-circle" class="w-6 h-6 hidden group-hover:block"></i>
+        </button>
+    </div>
+
+    <script>
+        function toggleCsChat() {
+            const bubble = document.getElementById('cs-chat-bubble');
+            bubble.classList.toggle('hidden');
+            feather.replace();
+        }
+
+        function askCsAi() {
+            const input = document.getElementById('cs-input');
+            const logs = document.getElementById('cs-chat-logs');
+            const txt = input.value.trim(); if (!txt) return;
+
+            logs.insertAdjacentHTML('beforeend', `<div class="flex justify-end"><div class="bg-maroon-50 p-3 rounded-2xl rounded-tr-none border shadow-sm max-w-[85%] text-maroon-900">${txt}</div></div>`);
+            input.value = '';
+            logs.scrollTop = logs.scrollHeight;
+
+            setTimeout(() => {
+                let res = "Terima kasih telah menghubungi kami. Saya akan meneruskan pertanyaan Anda ke tim terkait. Adakah hal lain?";
+                if (txt.toLowerCase().includes('bayar')) res = "Untuk pembayaran, kami mendukung semua Bank (BCA, Mandiri, dll) dan E-Wallet (GoPay, OVO, DANA). Anda cukup pilih di menu checkout.";
+                if (txt.toLowerCase().includes('lacak') || txt.toLowerCase().includes('driver')) res = "Anda bisa melacak pesanan di tab 'Track'. Driver kami akan segera ditugaskan setelah pembayaran terverifikasi.";
+
+                logs.insertAdjacentHTML('beforeend', `<div class="flex justify-start"><div class="bg-white p-3 rounded-2xl rounded-tl-none border shadow-sm max-w-[85%] text-gray-600">${res}</div></div>`);
+                logs.scrollTop = logs.scrollHeight;
+            }, 800);
+        }
+        feather.replace();
+    </script>
+    <!-- NOTIFICATION SYSTEM -->
+    <div id="notify-popup"
+        class="fixed top-20 right-6 z-[200] translate-x-[150%] transition-transform duration-500 max-w-sm w-[90%] pointer-events-none">
+        <div
+            class="bg-white dark:bg-maroon-800 border-l-8 border-maroon-600 p-5 rounded-[2rem] shadow-2xl flex items-start gap-4 pointer-events-auto">
+            <div
+                class="w-12 h-12 rounded-2xl bg-maroon-100 dark:bg-maroon-700 flex items-center justify-center shrink-0">
+                <i data-feather="bell" class="w-6 h-6 text-maroon-600 dark:text-cream-50"></i>
+            </div>
+            <div>
+                <h4 class="font-black text-sm text-maroon-900 dark:text-cream-50" id="notify-title">Pemberitahuan</h4>
+                <p class="text-[11px] font-bold text-maroon-600/70 dark:text-cream-200/70 mt-1 uppercase tracking-wider"
+                    id="notify-msg">Pesan sistem...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showNotify(title, msg) {
+            const pop = document.getElementById('notify-popup');
+            document.getElementById('notify-title').innerText = title;
+            document.getElementById('notify-msg').innerText = msg;
+            pop.classList.remove('translate-x-[150%]');
+            setTimeout(() => pop.classList.add('translate-x-[150%]'), 4000);
+        }
+        // No closeNotify function needed as it auto-hides
+
+        // Event listener for Cross-Tab Communication
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'new_order_event') {
+                const data = JSON.parse(e.newValue);
+                showNotify("Order Baru Masuk!", `Ada pesanan ${data.item} dari ${data.buyer_name} `);
+            }
+            if (e.key === 'order_status_update') {
+                const data = JSON.parse(e.newValue);
+                showNotify("Status Pesanan", `Status pesanan ${data.id}: ${data.status} `);
+
+                if (data.status === 'Diproses') {
+                    msgsSellerBuyer.push({ sender: 'seller', text: `Halo! Pesanan ** ${data.item}** kamu sudah kami terima dan sedang kami siapkan ya.Mohon ditunggu! 😊` });
+                    renderChat();
+                }
+
+                if (data.status === 'Dikirim') {
+                    // Start Driver Search Automation with data from event
+                    const storeName = data.store || (selShop ? selShop.name : "Toko");
+                    startDriverSearch(data.id, storeName, data.item);
+                }
+            }
+        });
+
+        function triggerOrderEvent(order) {
+            localStorage.setItem('new_order_event', JSON.stringify({
+                ...order,
+                timestamp: Date.now(),
+                buyer_name: currentUser?.name || 'Customer'
+            }));
+        }
+
+        // WEBSITE STUDIO CONFIG LOADER
+        function loadStudioConfig() {
+            const config = JSON.parse(localStorage.getItem('webkita_studio_config') || 'null');
+            if (config) {
+                // Update Branding
+                if (document.querySelector('nav h1')) {
+                    document.querySelector('nav h1').innerHTML = `${config.siteName.split(' ')[0]} <span class="text-maroon-500 italic">${config.siteName.split(' ')[1] || ''}</span>`;
+                }
+
+                // Update Hero
+                const heroTitle = document.getElementById('hero-title-el');
+                const heroDesc = document.getElementById('hero-desc-el');
+                const heroImg = document.getElementById('hero-img-el');
+
+                if (heroTitle) heroTitle.innerText = config.heroTitle;
+                if (heroDesc) heroDesc.innerText = config.heroDesc;
+                if (heroImg) heroImg.src = config.heroImg;
+            }
+        }
+
+        // Initialize dynamic content
+        window.addEventListener('load', () => {
+            loadStudioConfig();
+            if (orderStage > 0) {
+                if (orderStage >= 2 && orderStage < 4) {
+                    advanceOrderStage(3500); // Resume delivery timer if interrupted
+                } else {
+                    updateTracker();
+                }
+            }
+        });
+
+        // Listen for changes from Admin Studio
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'webkita_studio_config') loadStudioConfig();
+        });
+
+        feather.replace();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1394 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find.it AI - Admin Dashboard (Penjual)</title>
+    <meta name="description"
+        content="Dashboard Admin Penjual Find.it AI - Kelola produk, pesanan, keuangan, dan analisis toko Anda.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .sidebar-link.active {
+            background: linear-gradient(135deg, #7f1d1d, #991b1b);
+            color: white;
+        }
+
+        .card-stat {
+            transition: all 0.3s ease;
+        }
+
+        .card-stat:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #1a0505 0%, #3b0d0d 50%, #5c1a1a 100%);
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- LOGIN SCREEN -->
+    <div id="login-screen" class="min-h-screen gradient-bg flex items-center justify-center p-4">
+        <div class="glass rounded-3xl p-8 w-full max-w-md text-white fade-in">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-black tracking-tight">find.it <span class="text-red-400">AI</span></h1>
+                <p class="text-sm opacity-70 mt-1">Admin Dashboard — Penjual</p>
+            </div>
+            <div id="login-form">
+                <div class="space-y-4">
+                    <div>
+                        <label class="text-xs font-bold opacity-70 mb-1 block">Email</label>
+                        <input type="email" id="login-email"
+                            class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400 placeholder-white/40"
+                            placeholder="seller@findit.ai">
+                    </div>
+                    <div>
+                        <label class="text-xs font-bold opacity-70 mb-1 block">Password</label>
+                        <input type="password" id="login-password"
+                            class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400 placeholder-white/40"
+                            placeholder="••••••••">
+                    </div>
+                    <button onclick="handleLogin()"
+                        class="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-[1.02] shadow-lg">
+                        Masuk ke Dashboard
+                    </button>
+                </div>
+                <div class="text-center mt-4">
+                    <button onclick="showRegister()" class="text-xs text-red-300 hover:underline">Belum punya akun?
+                        Daftar Toko Baru</button>
+                </div>
+            </div>
+
+            <div id="register-form" class="hidden">
+                <div class="space-y-3">
+                    <input type="text" id="reg-store"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Nama Toko">
+                    <input type="text" id="reg-owner"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Nama Pemilik">
+                    <input type="email" id="reg-email"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Email">
+                    <input type="password" id="reg-password"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="Password">
+                    <input type="text" id="reg-phone"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm placeholder-white/40"
+                        placeholder="No. Telepon">
+                    <select id="reg-category"
+                        class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white/70">
+                        <option value="Makanan">Makanan</option>
+                        <option value="Minuman">Minuman</option>
+                        <option value="Elektronik">Elektronik</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Kesehatan">Kesehatan</option>
+                        <option value="Lainnya">Lainnya</option>
+                    </select>
+                    <button onclick="handleRegister()"
+                        class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all hover:scale-[1.02]">
+                        Daftar Sekarang
+                    </button>
+                </div>
+                <div class="text-center mt-4">
+                    <button onclick="showLogin()" class="text-xs text-red-300 hover:underline">Sudah punya akun?
+                        Login</button>
+                </div>
+            </div>
+            <p id="auth-message" class="text-center text-xs mt-4 hidden"></p>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard" class="hidden">
+        <!-- Sidebar -->
+        <div class="fixed left-0 top-0 bottom-0 w-64 gradient-bg text-white flex flex-col z-50">
+            <div class="p-6 border-b border-white/10">
+                <h1 class="text-xl font-black tracking-tight">find.it <span class="text-red-400">AI</span></h1>
+                <p class="text-[10px] opacity-50 mt-1 uppercase tracking-widest">Seller Dashboard</p>
+            </div>
+            <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+                <button onclick="showSection('dashboard-home')"
+                    class="sidebar-link active w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-dashboard-home">
+                    <i data-feather="home" class="w-4 h-4"></i> Dashboard
+                </button>
+                <button onclick="showSection('products')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-products">
+                    <i data-feather="package" class="w-4 h-4"></i> Produk
+                </button>
+                <button onclick="showSection('orders')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-orders">
+                    <i data-feather="shopping-cart" class="w-4 h-4"></i> Pesanan
+                </button>
+                <button onclick="showSection('finance')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-finance">
+                    <i data-feather="dollar-sign" class="w-4 h-4"></i> Keuangan
+                </button>
+                <button onclick="showSection('analytics-mk')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-analytics-mk">
+                    <i data-feather="trending-up" class="w-4 h-4"></i> Analisis Marketing
+                </button>
+                <button onclick="showSection('analytics-market')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-analytics-market">
+                    <i data-feather="bar-chart-2" class="w-4 h-4"></i> Analisis Pasar
+                </button>
+                <button onclick="showSection('inventory')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-inventory">
+                    <i data-feather="archive" class="w-4 h-4"></i> Stok & Inventori
+                </button>
+                <button onclick="showSection('sales-history')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-sales-history">
+                    <i data-feather="file-text" class="w-4 h-4"></i> Riwayat Penjualan
+                </button>
+                <button onclick="showSection('admin-editor')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-admin-editor">
+                    <i data-feather="edit" class="w-4 h-4"></i> Admin Editor (CMS)
+                </button>
+                <button onclick="showSection('help-support')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-help-support">
+                    <i data-feather="help-circle" class="w-4 h-4"></i> Help & Customer Service
+                </button>
+                <button onclick="showSection('profile')"
+                    class="sidebar-link w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition"
+                    id="nav-profile">
+                    <i data-feather="user" class="w-4 h-4"></i> Profil Toko
+                </button>
+            </nav>
+            <div class="p-4 border-t border-white/10 space-y-1">
+                <a href="/"
+                    class="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-white/10 transition text-blue-300 block">
+                    <i data-feather="shopping-bag" class="w-4 h-4"></i> Ke Halaman Buyer
+                </a>
+                <button onclick="handleLogout()"
+                    class="w-full text-left px-4 py-3 rounded-xl flex items-center gap-3 text-sm font-semibold hover:bg-red-900/50 transition text-red-300">
+                    <i data-feather="log-out" class="w-4 h-4"></i> Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="ml-64 min-h-screen">
+            <!-- Header -->
+            <header class="bg-white border-b px-8 py-4 flex justify-between items-center sticky top-0 z-40 shadow-sm">
+                <div>
+                    <h2 id="page-title" class="text-xl font-bold text-gray-800">Dashboard</h2>
+                    <p id="page-subtitle" class="text-xs text-gray-400">Selamat datang kembali!</p>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="seller-name" class="text-sm font-bold text-gray-600"></span>
+                    <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                        <i data-feather="user" class="w-5 h-5 text-red-600"></i>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Sections -->
+            <main class="p-8">
+
+                <!-- DASHBOARD HOME -->
+                <div id="section-dashboard-home" class="section fade-in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="card-stat bg-white rounded-2xl p-6 border shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Total Produk</span>
+                                <div class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center"><i
+                                        data-feather="package" class="w-5 h-5 text-blue-600"></i></div>
+                            </div>
+                            <h3 id="stat-products" class="text-3xl font-black text-gray-800">0</h3>
+                        </div>
+                        <div class="card-stat bg-white rounded-2xl p-6 border shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-gray-400 uppercase">Pesanan Pending</span>
+                                <div class="w-10 h-10 rounded-xl bg-yellow-100 flex items-center justify-center"><i
+                                        data-feather="clock" class="w-5 h-5 text-yellow-600"></i></div>
+                            </div>
+                            <h3 id="stat-pending" class="text-3xl font-black text-gray-800">0</h3>
+                        </div>
+                        <div class="card-stat bg-white rounded-2xl p-6 border shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-green-600 uppercase">💰 Uang Masuk</span>
+                                <div class="w-10 h-10 rounded-xl bg-green-100 flex items-center justify-center"><i
+                                        data-feather="arrow-down-circle" class="w-5 h-5 text-green-600"></i></div>
+                            </div>
+                            <h3 id="stat-money-in" class="text-2xl font-black text-green-600">Rp 0</h3>
+                        </div>
+                        <div class="card-stat bg-white rounded-2xl p-6 border shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="text-xs font-bold text-red-600 uppercase">💸 Uang Keluar</span>
+                                <div class="w-10 h-10 rounded-xl bg-red-100 flex items-center justify-center"><i
+                                        data-feather="arrow-up-circle" class="w-5 h-5 text-red-600"></i></div>
+                            </div>
+                            <h3 id="stat-money-out" class="text-2xl font-black text-red-600">Rp 0</h3>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+                            <h4 class="font-bold text-gray-800 mb-4">📊 Grafik Pendapatan (30 Hari)</h4>
+                            <canvas id="revenueChart" height="200"></canvas>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+                            <h4 class="font-bold text-gray-800 mb-4">🛒 Pesanan Terbaru</h4>
+                            <div id="recent-orders" class="space-y-3 max-h-[300px] overflow-y-auto">
+                                <p class="text-sm text-gray-400">Belum ada pesanan.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PRODUCTS SECTION -->
+                <div id="section-products" class="section hidden fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold">Daftar Produk</h3>
+                        <button onclick="showAddProduct()"
+                            class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 transition">
+                            <i data-feather="plus" class="w-4 h-4"></i> Tambah Produk
+                        </button>
+                    </div>
+                    <div id="products-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <p class="text-sm text-gray-400 col-span-full text-center py-10">Belum ada produk. Klik "Tambah
+                            Produk" untuk mulai.</p>
+                    </div>
+                </div>
+
+                <!-- ADD/EDIT PRODUCT FORM -->
+                <div id="section-product-form" class="section hidden fade-in">
+                    <button onclick="showSection('products')"
+                        class="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1"><i
+                            data-feather="arrow-left" class="w-4 h-4"></i> Kembali</button>
+                    <div class="bg-white rounded-2xl p-8 border shadow-sm max-w-3xl">
+                        <h3 id="form-title" class="text-lg font-bold mb-6">Tambah Produk Baru</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2"><label class="text-xs font-bold text-gray-500 mb-1 block">Nama
+                                    Produk *</label><input id="p-name"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div class="md:col-span-2"><label
+                                    class="text-xs font-bold text-gray-500 mb-1 block">Deskripsi Produk</label><textarea
+                                    id="p-desc" rows="4"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400"></textarea>
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Harga (Rp) *</label><input
+                                    id="p-price" type="number"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Harga Diskon
+                                    (Rp)</label><input id="p-discount" type="number"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Kategori</label>
+                                <select id="p-category" class="w-full border rounded-xl px-4 py-3 text-sm">
+                                    <option>Makanan</option>
+                                    <option>Minuman</option>
+                                    <option>Elektronik</option>
+                                    <option>Fashion</option>
+                                    <option>Kesehatan</option>
+                                    <option>Lainnya</option>
+                                </select>
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Stok</label><input
+                                    id="p-stock" type="number" value="0"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">SKU</label><input id="p-sku"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Berat (gram)</label><input
+                                    id="p-weight" type="number" value="0"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Kondisi</label>
+                                <select id="p-condition" class="w-full border rounded-xl px-4 py-3 text-sm">
+                                    <option>Baru</option>
+                                    <option>Bekas</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2"><label class="text-xs font-bold text-gray-500 mb-1 block">📷
+                                    Gambar Produk (Max 10)</label><input id="p-images" type="file" multiple
+                                    accept="image/*" class="w-full border rounded-xl px-4 py-3 text-sm"></div>
+                            <div class="md:col-span-2"><label class="text-xs font-bold text-gray-500 mb-1 block">🎥
+                                    Video Produk</label><input id="p-video" type="file" accept="video/*"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm"></div>
+                        </div>
+                        <button onclick="submitProduct()"
+                            class="mt-6 bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl text-sm font-bold transition">Simpan
+                            Produk</button>
+                    </div>
+                </div>
+
+                <!-- ORDERS -->
+                <div id="section-orders" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-6">Daftar Pesanan</h3>
+                    <div id="orders-list" class="space-y-3">
+                        <p class="text-sm text-gray-400 text-center py-10">Belum ada pesanan masuk.</p>
+                    </div>
+                </div>
+
+                <!-- FINANCE -->
+                <div id="section-finance" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-6">💰 Analisis Keuangan</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-green-50 border border-green-200 rounded-2xl p-5">
+                            <p class="text-xs font-bold text-green-600 uppercase">Total Uang Masuk</p>
+                            <h3 id="fin-in" class="text-2xl font-black text-green-700 mt-2">Rp 0</h3>
+                        </div>
+                        <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+                            <p class="text-xs font-bold text-red-600 uppercase">Total Uang Keluar</p>
+                            <h3 id="fin-out" class="text-2xl font-black text-red-700 mt-2">Rp 0</h3>
+                        </div>
+                        <div class="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+                            <p class="text-xs font-bold text-blue-600 uppercase">Laba Bersih</p>
+                            <h3 id="fin-net" class="text-2xl font-black text-blue-700 mt-2">Rp 0</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 border shadow-sm"><canvas id="financeChart"
+                            height="250"></canvas></div>
+                </div>
+
+                <!-- MARKETING ANALYTICS -->
+                <div id="section-analytics-mk" class="section hidden fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold">📈 Analisis Marketing</h3>
+                        <button onclick="getAiInsight('marketing')"
+                            class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition">
+                            <i data-feather="cpu" class="w-4 h-4"></i> AGI AI Insight
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+                            <h4 class="font-bold mb-3">Produk Paling Dilihat</h4>
+                            <div id="mk-top-views" class="space-y-2">
+                                <p class="text-gray-400 text-sm">Data belum tersedia</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+                            <h4 class="font-bold mb-3">Produk Paling Laku</h4>
+                            <div id="mk-top-sales" class="space-y-2">
+                                <p class="text-gray-400 text-sm">Data belum tersedia</p>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 border shadow-sm md:col-span-2">
+                            <h4 class="font-bold mb-3">Conversion Rate (Views → Sales)</h4><canvas id="conversionChart"
+                                height="150"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MARKET ANALYTICS -->
+                <div id="section-analytics-market" class="section hidden fade-in">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-bold">🏪 Analisis Pasar</h3>
+                        <button onclick="getAiInsight('market')"
+                            class="bg-gradient-to-r from-blue-600 to-cyan-600 text-white px-4 py-2 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg hover:scale-105 transition">
+                            <i data-feather="cpu" class="w-4 h-4"></i> AGI Market Predictor
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+                            <h4 class="font-bold mb-3">Kategori Terlaris</h4><canvas id="categoryChart"
+                                height="200"></canvas>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 border shadow-sm">
+                            <h4 class="font-bold mb-3">Analisis Harga</h4><canvas id="priceChart" height="200"></canvas>
+                        </div>
+                        <div class="bg-white rounded-2xl p-6 border shadow-sm md:col-span-2">
+                            <h4 class="font-bold mb-3">Produk Trending Minggu Ini</h4>
+                            <div id="market-trending" class="space-y-2">
+                                <p class="text-gray-400 text-sm">Data belum tersedia</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INVENTORY -->
+                <div id="section-inventory" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-6">📦 Stok & Inventori</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
+                            <p class="text-xs font-bold text-yellow-700 uppercase">⚠️ Stok Hampir Habis</p>
+                            <h3 id="inv-low" class="text-2xl font-black text-yellow-700 mt-2">0 produk</h3>
+                        </div>
+                        <div class="bg-red-50 border border-red-200 rounded-2xl p-5">
+                            <p class="text-xs font-bold text-red-700 uppercase">❌ Stok Kosong</p>
+                            <h3 id="inv-empty" class="text-2xl font-black text-red-700 mt-2">0 produk</h3>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl p-6 border shadow-sm">
+                        <h4 class="font-bold mb-3">Riwayat Pergerakan Stok</h4>
+                        <div id="inv-movements" class="space-y-2">
+                            <p class="text-gray-400 text-sm">Pilih produk untuk melihat riwayat stok.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SALES HISTORY -->
+                <div id="section-sales-history" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-6">📋 Riwayat Penjualan & Struk</h3>
+                    <div id="sales-list" class="space-y-3">
+                        <p class="text-sm text-gray-400 text-center py-10">Belum ada riwayat penjualan.</p>
+                    </div>
+                </div>
+
+                <!-- HELP & SUPPORT -->
+                <div id="section-help-support" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-6">🎧 Help & Customer Service</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="md:col-span-2 space-y-4">
+                            <div class="bg-white p-6 rounded-2xl border shadow-sm">
+                                <h4 class="font-bold mb-4">Pusat Bantuan Penjual</h4>
+                                <div class="space-y-3">
+                                    <div
+                                        class="p-4 bg-gray-50 rounded-xl flex justify-between items-center cursor-pointer hover:bg-gray-100 transition">
+                                        <p class="text-sm font-medium">Bagaimana cara mencairkan saldo?</p>
+                                        <i data-feather="chevron-right" class="w-4 h-4 opacity-30"></i>
+                                    </div>
+                                    <div
+                                        class="p-4 bg-gray-50 rounded-xl flex justify-between items-center cursor-pointer hover:bg-gray-100 transition">
+                                        <p class="text-sm font-medium">Produk saya tidak muncul di pencarian</p>
+                                        <i data-feather="chevron-right" class="w-4 h-4 opacity-30"></i>
+                                    </div>
+                                    <div
+                                        class="p-4 bg-gray-50 rounded-xl flex justify-between items-center cursor-pointer hover:bg-gray-100 transition">
+                                        <p class="text-sm font-medium">Berapa biaya layanan untuk tiap transaksi?</p>
+                                        <i data-feather="chevron-right" class="w-4 h-4 opacity-30"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-2xl border shadow-sm flex flex-col items-center text-center">
+                            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                                <i data-feather="headphones" class="w-8 h-8 text-red-600"></i>
+                            </div>
+                            <h4 class="font-bold mb-2">Live Chat CS</h4>
+                            <p class="text-xs text-gray-400 mb-6">Hubungi tim support kami 24/7 melalui chat langsung.
+                            </p>
+                            <button onclick="alert('Membuka chat dengan CS...')"
+                                class="w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition">Hubungi
+                                Sekarang</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ADMIN EDITOR (CMS) -->
+                <div id="section-admin-editor" class="section hidden fade-in h-[calc(100vh-180px)]">
+                    <div class="flex flex-col h-full bg-white rounded-3xl border shadow-sm overflow-hidden">
+                        <!-- Tab Switcher -->
+                        <div class="flex bg-gray-100 p-1 rounded-t-3xl border-b">
+                            <button onclick="switchEditorTab('studio')" id="tab-studio-btn"
+                                class="flex-1 py-3 text-sm font-bold rounded-2xl transition bg-white shadow-sm text-red-600">✨
+                                Website Studio (Visual)</button>
+                            <button onclick="switchEditorTab('code')" id="tab-code-btn"
+                                class="flex-1 py-3 text-sm font-bold rounded-2xl transition text-gray-500 hover:bg-white/50">💻
+                                Code Editor (Raw)</button>
+                        </div>
+
+                        <!-- STUDIO TAB -->
+                        <div id="editor-studio" class="flex-1 overflow-y-auto p-6 space-y-8 animate-fade-in">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <!-- BRANDING & HERO -->
+                                <div class="space-y-6">
+                                    <h4 class="font-black text-gray-800 flex items-center gap-2"><i
+                                            data-feather="layout" class="w-5 h-5"></i> Branding & Hero Section</h4>
+                                    <div class="bg-gray-50 p-6 rounded-2xl space-y-4 border">
+                                        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Nama
+                                                Website</label><input id="studio-site-name"
+                                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:border-red-400 outline-none"
+                                                placeholder="Find.it AI"></div>
+                                        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Hero
+                                                Headline</label><input id="studio-hero-title"
+                                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:border-red-400 outline-none"
+                                                placeholder="Belanja Cerdas Lewat AI"></div>
+                                        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Hero
+                                                Subheadline</label><textarea id="studio-hero-desc"
+                                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:border-red-400 outline-none"
+                                                placeholder="Cari apapun, pesan langsung..."></textarea></div>
+                                        <div><label class="text-[10px] font-bold text-gray-400 uppercase">Hero Banner
+                                                URL</label><input id="studio-hero-img"
+                                                class="w-full border rounded-xl px-4 py-2.5 text-sm focus:border-red-400 outline-none"
+                                                placeholder="https://example.com/banner.jpg"></div>
+                                        <button onclick="saveStudioConfig()"
+                                            class="w-full bg-black text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition"><i
+                                                data-feather="save" class="w-4 h-4"></i> Simpan Tampilan Utama</button>
+                                    </div>
+                                </div>
+
+                                <!-- PREVIEW -->
+                                <div class="space-y-6">
+                                    <h4 class="font-black text-gray-800 flex items-center gap-2"><i data-feather="eye"
+                                            class="w-5 h-5"></i> Live Preview</h4>
+                                    <div
+                                        class="border-4 border-gray-100 rounded-[2.5rem] bg-gray-50 aspect-[9/16] md:aspect-auto md:h-full relative overflow-hidden shadow-inner flex flex-col">
+                                        <div class="absolute inset-0 flex flex-col scale-[0.9] origin-top">
+                                            <div class="h-12 bg-white border-b px-4 flex items-center justify-between">
+                                                <div class="font-bold text-xs" id="pre-site-name">Find.it AI</div>
+                                                <div class="w-16 h-4 bg-gray-100 rounded"></div>
+                                            </div>
+                                            <div id="pre-hero"
+                                                class="h-32 bg-gray-800 flex flex-col items-center justify-center p-4 text-center text-white relative flex-shrink-0">
+                                                <img id="pre-hero-img"
+                                                    class="absolute inset-0 w-full h-full object-cover opacity-40"
+                                                    src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=600">
+                                                <div class="relative z-10 font-bold text-xs" id="pre-hero-title">Hero
+                                                    Title</div>
+                                                <div class="relative z-10 text-[8px] opacity-70" id="pre-hero-desc">
+                                                    Subtitle goes here</div>
+                                            </div>
+                                            <div class="p-4 space-y-2 overflow-hidden">
+                                                <div class="w-full h-8 bg-gray-200 rounded-full"></div>
+                                                <div class="grid grid-cols-2 gap-2" id="pre-grid">
+                                                    <div
+                                                        class="h-20 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                                                        <div class="h-8 bg-gray-100 w-full"></div>
+                                                        <div class="p-2 w-12 h-2 bg-gray-50 rounded mt-1"></div>
+                                                    </div>
+                                                    <div
+                                                        class="h-20 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                                                        <div class="h-8 bg-gray-100 w-full"></div>
+                                                        <div class="p-2 w-12 h-2 bg-gray-50 rounded mt-1"></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- GLOBAL SHOP MANAGER -->
+                            <div class="space-y-6 mt-12">
+                                <h4 class="font-black text-gray-800 flex items-center gap-2"><i
+                                        data-feather="shopping-bag" class="w-5 h-5"></i> Edit Toko di Website Utama
+                                </h4>
+                                <div class="bg-gray-50 border rounded-3xl overflow-hidden">
+                                    <table class="w-full text-left text-xs">
+                                        <thead class="bg-gray-100 text-gray-400 font-bold uppercase">
+                                            <tr>
+                                                <th class="px-6 py-4">Toko / Foto</th>
+                                                <th class="px-6 py-4">Kategori</th>
+                                                <th class="px-6 py-4">Status & Kontrol</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="studio-shop-list" class="divide-y">
+                                            <!-- List will be here -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="flex justify-center">
+                                    <button onclick="saveStudioShops()"
+                                        class="bg-red-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-red-700 transition shadow-lg flex items-center gap-2 mt-4"><i
+                                            data-feather="upload-cloud" class="w-5 h-5"></i> Publish Perubahan
+                                        Toko</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CODE TAB -->
+                        <div id="editor-code" class="hidden flex-1 flex animate-fade-in overflow-hidden">
+                            <div class="flex-1 flex flex-col bg-gray-900 overflow-hidden">
+                                <div
+                                    class="bg-gray-800 text-white px-4 py-2 text-[10px] font-mono flex justify-between items-center">
+                                    <div class="flex items-center gap-3">
+                                        <select id="editor-file-selector" onchange="loadEditorFile()"
+                                            class="bg-gray-700 text-white px-2 py-1 rounded outline-none border-none">
+                                            <option value="index.html">index.html (Buyer)</option>
+                                            <option value="admin.html">admin/index.html (Seller)</option>
+                                            <option value="driver.html">driver/index.html (Driver)</option>
+                                        </select>
+                                        <span id="load-status"
+                                            class="text-[10px] text-green-400 opacity-0 transition-opacity">Loaded!</span>
+                                    </div>
+                                    <button onclick="saveCmsContent()"
+                                        class="bg-green-600 hover:bg-green-700 px-3 py-1 rounded font-bold">SAVE
+                                        CHANGES</button>
+                                </div>
+                                <textarea id="cms-editor" spellcheck="false"
+                                    class="flex-1 p-4 font-mono text-sm bg-gray-900 text-green-400 focus:outline-none resize-none"></textarea>
+                            </div>
+                            <!-- AI Sidebar for Code -->
+                            <div class="w-72 border-l bg-white flex flex-col overflow-hidden">
+                                <div
+                                    class="bg-red-600 text-white p-3 font-bold text-xs flex items-center gap-2 shadow-lg">
+                                    <i data-feather="cpu" class="w-4 h-4"></i> AI Agent Assistant
+                                </div>
+                                <div id="ai-chat-logs"
+                                    class="flex-1 p-4 overflow-y-auto space-y-3 bg-gray-50 text-[10px]">
+                                    <div class="bg-white p-3 rounded-xl shadow-sm border border-red-50">
+                                        <p class="font-bold text-red-600 mb-1">AI AGENT:</p>
+                                        <p class="text-gray-600">Halo! Saya siap membantu modifikasi kode website Anda
+                                            secara otomatis. Tulis saja instruksinya!</p>
+                                    </div>
+                                </div>
+                                <div class="p-3 border-t bg-white">
+                                    <div class="flex gap-2">
+                                        <input id="ai-input" type="text" placeholder="Tanya AI..."
+                                            class="flex-1 border rounded-lg px-3 py-2 text-xs focus:outline-none">
+                                        <button onclick="askAi()"
+                                            class="bg-red-600 text-white p-2 rounded-lg hover:scale-110 transition"><i
+                                                data-feather="send" class="w-3 h-3"></i></button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROFILE -->
+                <div id="section-profile" class="section hidden fade-in">
+                    <h3 class="text-lg font-bold mb-6">👤 Profil Toko</h3>
+                    <div class="bg-white rounded-2xl p-8 border shadow-sm max-w-3xl">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="md:col-span-2"><label class="text-xs font-bold text-gray-500 mb-1 block">Nama
+                                    Toko</label><input id="pf-store"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Nama Pemilik</label><input
+                                    id="pf-owner"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Telepon</label><input
+                                    id="pf-phone"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div class="md:col-span-2"><label
+                                    class="text-xs font-bold text-gray-500 mb-1 block">Alamat</label><textarea
+                                    id="pf-address" rows="2"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400"></textarea>
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Kota</label><input
+                                    id="pf-city"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400">
+                            </div>
+                            <div><label class="text-xs font-bold text-gray-500 mb-1 block">Kategori Toko</label>
+                                <select id="pf-category" class="w-full border rounded-xl px-4 py-3 text-sm">
+                                    <option>Makanan</option>
+                                    <option>Minuman</option>
+                                    <option>Elektronik</option>
+                                    <option>Fashion</option>
+                                    <option>Kesehatan</option>
+                                    <option>Lainnya</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2"><label
+                                    class="text-xs font-bold text-gray-500 mb-1 block">Deskripsi Toko</label><textarea
+                                    id="pf-desc" rows="3"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-400"></textarea>
+                            </div>
+                            <div class="md:col-span-2"><label class="text-xs font-bold text-gray-500 mb-1 block">Logo
+                                    Toko</label><input id="pf-logo" type="file" accept="image/*"
+                                    class="w-full border rounded-xl px-4 py-3 text-sm"></div>
+                        </div>
+                        <button onclick="updateProfile()"
+                            class="mt-6 bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-xl text-sm font-bold transition">Simpan
+                            Profil</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- NOTIFICATION SYSTEM -->
+    <div id="notify-popup"
+        class="fixed top-6 right-6 z-[100] translate-x-[120%] transition-transform duration-500 max-w-sm w-full">
+        <div class="bg-white border-l-4 border-red-600 p-4 rounded-2xl shadow-2xl flex items-start gap-3">
+            <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+                <i data-feather="bell" class="w-5 h-5 text-red-600"></i>
+            </div>
+            <div class="flex-1">
+                <h4 class="font-bold text-sm text-gray-800" id="notify-title">Pemberitahuan</h4>
+                <p class="text-xs text-gray-500 mt-1" id="notify-msg">Pesan sistem...</p>
+            </div>
+            <button onclick="closeNotify()" class="text-gray-400 hover:text-gray-600"><i data-feather="x"
+                    class="w-4 h-4"></i></button>
+        </div>
+    </div>
+
+    <script>
+        let currentUser = JSON.parse(localStorage.getItem('seller_user') || 'null');
+        let sellerProducts = JSON.parse(localStorage.getItem('seller_products') || '[]');
+        let sellerOrders = JSON.parse(localStorage.getItem('seller_orders') || '[]');
+        let sellerTransactions = JSON.parse(localStorage.getItem('seller_transactions') || '[]');
+
+        // Initial demo account
+        function initAdminUser() {
+            let sellers = JSON.parse(localStorage.getItem('all_sellers') || '[]');
+            if (sellers.length === 0) {
+                const defaultSeller = {
+                    id: 'demo-seller',
+                    store_name: 'Find.it Coffee Pusat',
+                    owner_name: 'Demo Admin',
+                    email: 'seller@findit.ai',
+                    password: 'admin123',
+                    phone: '08123456789',
+                    store_category: 'Minuman',
+                    joined_at: new Date().toISOString()
+                };
+                sellers.push(defaultSeller);
+                localStorage.setItem('all_sellers', JSON.stringify(sellers));
+            }
+        }
+        initAdminUser();
+
+        // Check auth on load
+        if (currentUser) { showDashboard(); }
+
+        function showRegister() { document.getElementById('login-form').classList.add('hidden'); document.getElementById('register-form').classList.remove('hidden'); }
+        function showLogin() { document.getElementById('register-form').classList.add('hidden'); document.getElementById('login-form').classList.remove('hidden'); }
+
+        function handleLogin() {
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            if (!email || !password) return showAuthMsg('Email dan password wajib diisi.', 'red');
+
+            const sellers = JSON.parse(localStorage.getItem('all_sellers') || '[]');
+            const seller = sellers.find(s => s.email === email && s.password === password);
+            if (!seller) return showAuthMsg('Email atau password salah. Silakan daftar dulu.', 'red');
+
+            currentUser = seller;
+            localStorage.setItem('seller_user', JSON.stringify(currentUser));
+            showDashboard();
+        }
+
+        function handleRegister() {
+            const store_name = document.getElementById('reg-store').value.trim();
+            const owner_name = document.getElementById('reg-owner').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            const phone = document.getElementById('reg-phone').value.trim();
+            const store_category = document.getElementById('reg-category').value;
+
+            if (!store_name || !owner_name || !email || !password) return showAuthMsg('Semua field wajib diisi.', 'red');
+
+            const sellers = JSON.parse(localStorage.getItem('all_sellers') || '[]');
+            if (sellers.find(s => s.email === email)) return showAuthMsg('Email sudah terdaftar.', 'yellow');
+
+            const newSeller = { id: Date.now(), store_name, owner_name, email, password, phone, store_category, joined_at: new Date().toISOString() };
+            sellers.push(newSeller);
+            localStorage.setItem('all_sellers', JSON.stringify(sellers));
+
+            currentUser = newSeller;
+            localStorage.setItem('seller_user', JSON.stringify(currentUser));
+
+            // Add demo data for new seller
+            seedDemoData();
+            showAuthMsg('✅ Registrasi berhasil! Mengarahkan...', 'green');
+            setTimeout(() => showDashboard(), 500);
+        }
+
+        function seedDemoData() {
+            const demoProducts = [
+                { id: 1, name: 'Nasi Goreng Spesial', price: 25000, stock: 50, category: 'Makanan', total_sold: 234, total_views: 1580, rating: 4.8, condition: 'Baru', desc: 'Nasi goreng dengan telur, ayam, dan sayuran segar.' },
+                { id: 2, name: 'Es Teh Manis', price: 5000, stock: 200, category: 'Minuman', total_sold: 567, total_views: 2300, rating: 4.5, condition: 'Baru', desc: 'Teh manis dingin yang menyegarkan.' },
+                { id: 3, name: 'Ayam Geprek Sambal', price: 18000, stock: 3, category: 'Makanan', total_sold: 312, total_views: 1920, rating: 4.9, condition: 'Baru', desc: 'Ayam geprek dengan sambal pedas.' },
+                { id: 4, name: 'Mie Ayam Bakso', price: 15000, stock: 0, category: 'Makanan', total_sold: 189, total_views: 980, rating: 4.6, condition: 'Baru', desc: 'Mie ayam dengan bakso sapi.' },
+                { id: 5, name: 'Kopi Susu Gula Aren', price: 18000, stock: 85, category: 'Minuman', total_sold: 445, total_views: 3100, rating: 4.7, condition: 'Baru', desc: 'Kopi susu premium dengan gula aren asli.' },
+                { id: 6, name: 'Charger USB-C Fast', price: 85000, stock: 25, category: 'Elektronik', total_sold: 78, total_views: 520, rating: 4.3, condition: 'Baru', desc: 'Charger fast charging 25W USB-C.' }
+            ];
+            const demoOrders = [
+                { id: 'ORD-001', buyer: 'Budi Santoso', items: 'Nasi Goreng x2', total: 50000, status: 'Selesai', date: '2026-03-08' },
+                { id: 'ORD-002', buyer: 'Siti Rahmawati', items: 'Kopi Susu x3', total: 54000, status: 'Dikirim', date: '2026-03-08' },
+                { id: 'ORD-003', buyer: 'Andi Pratama', items: 'Ayam Geprek x1', total: 18000, status: 'Diproses', date: '2026-03-08' },
+                { id: 'ORD-004', buyer: 'Dewi Lestari', items: 'Mie Ayam x2, Es Teh x2', total: 40000, status: 'Menunggu', date: '2026-03-07' },
+                { id: 'ORD-005', buyer: 'Reza Fahmi', items: 'Charger USB-C x1', total: 85000, status: 'Selesai', date: '2026-03-07' }
+            ];
+            const demoTx = [
+                { type: 'Masuk', amount: 1250000, category: 'Penjualan', date: '2026-03-08' },
+                { type: 'Keluar', amount: 350000, category: 'Restok Bahan', date: '2026-03-08' },
+                { type: 'Masuk', amount: 890000, category: 'Penjualan', date: '2026-03-07' },
+                { type: 'Keluar', amount: 125000, category: 'Ongkir', date: '2026-03-07' },
+                { type: 'Masuk', amount: 1540000, category: 'Penjualan', date: '2026-03-06' },
+                { type: 'Keluar', amount: 500000, category: 'Gaji Karyawan', date: '2026-03-06' },
+                { type: 'Masuk', amount: 670000, category: 'Penjualan', date: '2026-03-05' },
+                { type: 'Masuk', amount: 980000, category: 'Penjualan', date: '2026-03-04' },
+                { type: 'Keluar', amount: 200000, category: 'Operasional', date: '2026-03-04' }
+            ];
+            localStorage.setItem('seller_products', JSON.stringify(demoProducts));
+            localStorage.setItem('seller_orders', JSON.stringify(demoOrders));
+            localStorage.setItem('seller_transactions', JSON.stringify(demoTx));
+            sellerProducts = demoProducts;
+            sellerOrders = demoOrders;
+            sellerTransactions = demoTx;
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('seller_user');
+            currentUser = null;
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+        }
+
+        function showAuthMsg(msg, color) {
+            const el = document.getElementById('auth-message');
+            el.textContent = msg;
+            el.className = `text-center text-xs mt-4 text-${color}-400`;
+            el.classList.remove('hidden');
+        }
+
+        function showDashboard() {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('seller-name').textContent = currentUser?.store_name || 'Toko';
+
+            // Load data
+            sellerProducts = JSON.parse(localStorage.getItem('seller_products') || '[]');
+            sellerOrders = JSON.parse(localStorage.getItem('seller_orders') || '[]');
+            sellerTransactions = JSON.parse(localStorage.getItem('seller_transactions') || '[]');
+
+            if (sellerProducts.length === 0) seedDemoData();
+
+            feather.replace();
+            loadDashboard();
+        }
+
+        function fmt(n) { return 'Rp ' + Number(n).toLocaleString('id-ID'); }
+
+        function showSection(name) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.getElementById('section-' + name).classList.remove('hidden');
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            const navBtn = document.getElementById('nav-' + name);
+            if (navBtn) navBtn.classList.add('active');
+
+            const titles = {
+                'dashboard-home': ['Dashboard', 'Ringkasan performa toko Anda'],
+                'products': ['Produk', 'Kelola semua produk toko Anda'],
+                'product-form': ['Form Produk', 'Tambah atau edit produk'],
+                'orders': ['Pesanan', 'Kelola pesanan masuk'],
+                'finance': ['Keuangan', 'Analisis uang masuk dan keluar'],
+                'analytics-mk': ['Analisis Marketing', 'Performa pemasaran produk'],
+                'analytics-market': ['Analisis Pasar', 'Tren dan kondisi pasar'],
+                'inventory': ['Stok & Inventori', 'Produk masuk dan keluar'],
+                'sales-history': ['Riwayat Penjualan', 'Daftar struk penjualan'],
+                'admin-editor': ['Admin Editor (CMS) & Advanced AI', 'Ubah konten website langsung dengan bantuan AI'],
+                'help-support': ['Help & Customer Service', 'Bantuan dan layanan pelanggan'],
+                'profile': ['Profil Toko', 'Edit informasi toko Anda']
+            };
+            const [title, subtitle] = titles[name] || ['Dashboard', ''];
+            document.getElementById('page-title').textContent = title;
+            document.getElementById('page-subtitle').textContent = subtitle;
+
+            if (name === 'products') renderProducts();
+            if (name === 'orders') renderOrders();
+            if (name === 'finance') renderFinance();
+            if (name === 'analytics-mk') renderMarketing();
+            if (name === 'analytics-market') renderMarket();
+            if (name === 'inventory') renderInventory();
+            if (name === 'sales-history') renderSalesHistory();
+            if (name === 'admin-editor') initAdminEditor();
+            if (name === 'help-support') feather.replace();
+            if (name === 'profile') loadProfile();
+            feather.replace();
+        }
+
+        function showAddProduct() { showSection('product-form'); document.getElementById('form-title').textContent = 'Tambah Produk Baru'; }
+
+        // ===== DASHBOARD =====
+        function loadDashboard() {
+            const totalMasuk = sellerTransactions.filter(t => t.type === 'Masuk').reduce((a, b) => a + b.amount, 0);
+            const totalKeluar = sellerTransactions.filter(t => t.type === 'Keluar').reduce((a, b) => a + b.amount, 0);
+            const pending = sellerOrders.filter(o => o.status === 'Menunggu').length;
+
+            document.getElementById('stat-products').textContent = sellerProducts.length;
+            document.getElementById('stat-pending').textContent = pending;
+            document.getElementById('stat-money-in').textContent = fmt(totalMasuk);
+            document.getElementById('stat-money-out').textContent = fmt(totalKeluar);
+
+            // Recent orders
+            const recentEl = document.getElementById('recent-orders');
+            recentEl.innerHTML = sellerOrders.slice(0, 5).map(o => {
+                const colors = { 'Selesai': 'green', 'Dikirim': 'blue', 'Diproses': 'yellow', 'Menunggu': 'orange', 'Dibatalkan': 'red' };
+                const c = colors[o.status] || 'gray';
+                return `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                    <div><p class="font-bold text-sm">${o.id}</p><p class="text-xs text-gray-400">${o.buyer} · ${o.items}</p></div>
+                    <div class="text-right"><p class="font-bold text-sm">${fmt(o.total)}</p><span class="text-[10px] font-bold bg-${c}-100 text-${c}-700 px-2 py-0.5 rounded-full">${o.status}</span></div>
+                </div>`;
+            }).join('');
+
+            // Revenue chart
+            const ctx = document.getElementById('revenueChart').getContext('2d');
+            const days = ['3 Mar', '4 Mar', '5 Mar', '6 Mar', '7 Mar', '8 Mar'];
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: days,
+                    datasets: [
+                        { label: 'Uang Masuk', data: [450000, 980000, 670000, 1540000, 890000, 1250000], borderColor: '#16a34a', backgroundColor: 'rgba(22,163,74,0.1)', fill: true, tension: 0.4 },
+                        { label: 'Uang Keluar', data: [150000, 200000, 100000, 500000, 125000, 350000], borderColor: '#dc2626', backgroundColor: 'rgba(220,38,38,0.1)', fill: true, tension: 0.4 }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { position: 'bottom' } }, scales: { y: { beginAtZero: true, ticks: { callback: v => 'Rp ' + (v / 1000) + 'K' } } } }
+            });
+        }
+
+        // ===== PRODUCTS =====
+        function renderProducts() {
+            const el = document.getElementById('products-list');
+            if (sellerProducts.length === 0) { el.innerHTML = '<p class="text-sm text-gray-400 col-span-full text-center py-10">Belum ada produk.</p>'; return; }
+            el.innerHTML = sellerProducts.map(p => `
+                <div class="bg-white rounded-2xl border shadow-sm p-5 hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-3">
+                        <span class="text-[10px] font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-full">${p.category}</span>
+                        <span class="text-[10px] font-bold ${p.stock <= 0 ? 'bg-red-100 text-red-600' : p.stock <= 5 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-600'} px-2 py-0.5 rounded-full">Stok: ${p.stock}</span>
+                    </div>
+                    <h4 class="font-bold text-gray-800">${p.name}</h4>
+                    <p class="text-xs text-gray-400 mt-1 line-clamp-2">${p.desc || '-'}</p>
+                    <div class="flex justify-between items-center mt-4">
+                        <span class="font-black text-red-600">${fmt(p.price)}</span>
+                        <span class="text-xs text-gray-400">⭐ ${p.rating} · ${p.total_sold} terjual</span>
+                    </div>
+                    <div class="flex gap-2 mt-3">
+                        <button onclick="deleteProduct(${p.id})" class="flex-1 bg-red-50 text-red-600 text-xs font-bold py-2 rounded-lg hover:bg-red-100 transition">Hapus</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function deleteProduct(id) {
+            if (!confirm('Hapus produk ini?')) return;
+            sellerProducts = sellerProducts.filter(p => p.id !== id);
+            localStorage.setItem('seller_products', JSON.stringify(sellerProducts));
+            renderProducts();
+        }
+
+        function submitProduct() {
+            const name = document.getElementById('p-name').value.trim();
+            const price = parseFloat(document.getElementById('p-price').value);
+            if (!name || !price) return alert('Nama dan harga wajib diisi!');
+
+            const newP = {
+                id: Date.now(), name, price,
+                desc: document.getElementById('p-desc').value,
+                category: document.getElementById('p-category').value,
+                stock: parseInt(document.getElementById('p-stock').value) || 0,
+                condition: document.getElementById('p-condition').value,
+                total_sold: 0, total_views: 0, rating: 0
+            };
+            sellerProducts.push(newP);
+            localStorage.setItem('seller_products', JSON.stringify(sellerProducts));
+            alert('✅ Produk berhasil ditambahkan!');
+            showSection('products');
+        }
+
+        // ===== ORDERS =====
+        function renderOrders() {
+            const el = document.getElementById('orders-list');
+            el.innerHTML = sellerOrders.map(o => {
+                const colors = { 'Selesai': 'green', 'Dikirim': 'blue', 'Diproses': 'yellow', 'Menunggu': 'orange' };
+                const c = colors[o.status] || 'gray';
+                return `<div class="bg-white rounded-xl border p-4 flex justify-between items-center shadow-sm">
+                    <div>
+                        <p class="font-bold text-sm">${o.id} <span class="text-[10px] bg-${c}-100 text-${c}-700 px-2 py-0.5 rounded-full ml-2">${o.status}</span></p>
+                        <p class="text-xs text-gray-400 mt-1">👤 ${o.buyer} · ${o.items}</p>
+                        <p class="text-xs text-gray-300 mt-0.5">📅 ${o.date}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-lg">${fmt(o.total)}</p>
+                        ${o.status === 'Menunggu' ? `<button onclick="updateOrderStatus('${o.id}','Diproses')" class="text-[10px] bg-blue-600 text-white px-3 py-1 rounded-lg mt-1 hover:bg-blue-700">Proses</button>` : ''}
+                        ${o.status === 'Diproses' ? `<button onclick="updateOrderStatus('${o.id}','Dikirim')" class="text-[10px] bg-green-600 text-white px-3 py-1 rounded-lg mt-1 hover:bg-green-700">Kirim</button>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function updateOrderStatus(id, newStatus) {
+            const order = sellerOrders.find(o => o.id === id);
+            if (order) {
+                order.status = newStatus;
+                localStorage.setItem('seller_orders', JSON.stringify(sellerOrders));
+                renderOrders();
+
+                // TRIGGER EVENT FOR BUYER & DRIVER
+                localStorage.setItem('order_status_update', JSON.stringify({
+                    id: id,
+                    status: newStatus,
+                    item: order.items,
+                    store: currentUser?.store_name || "Toko Kami",
+                    timestamp: Date.now()
+                }));
+
+                showNotify("Status Diperbarui", `Pesanan ${id} kini: ${newStatus}`);
+
+                if (newStatus === 'Dikirim') {
+                    showNotify("Pemberitahuan", "Driver telah diberi tahu untuk menjemput barang.");
+                }
+            }
+        }
+
+        // Notification System
+        function showNotify(title, msg, duration = 5000) {
+            const popup = document.getElementById('notify-popup');
+            document.getElementById('notify-title').innerText = title;
+            document.getElementById('notify-msg').innerText = msg;
+            popup.classList.remove('translate-x-[120%]');
+            feather.replace();
+            setTimeout(() => popup.classList.add('translate-x-[120%]'), duration);
+        }
+        function closeNotify() { document.getElementById('notify-popup').classList.add('translate-x-[120%]'); }
+
+        // REAL-TIME LISTENER
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'new_order_event') {
+                const data = JSON.parse(e.newValue);
+                showNotify("🚀 PESANAN BARU!", `${data.buyer_name} memesan ${data.item}. Segera proses!`);
+                // Auto reload orders list
+                sellerOrders = JSON.parse(localStorage.getItem('seller_orders') || '[]');
+                if (document.getElementById('section-orders').classList.contains('hidden') === false) renderOrders();
+                loadDashboard();
+            }
+        });
+
+        // ===== FINANCE =====
+        let finChartInstance = null;
+        function renderFinance() {
+            const totalIn = sellerTransactions.filter(t => t.type === 'Masuk').reduce((a, b) => a + b.amount, 0);
+            const totalOut = sellerTransactions.filter(t => t.type === 'Keluar').reduce((a, b) => a + b.amount, 0);
+            document.getElementById('fin-in').textContent = fmt(totalIn);
+            document.getElementById('fin-out').textContent = fmt(totalOut);
+            document.getElementById('fin-net').textContent = fmt(totalIn - totalOut);
+
+            if (finChartInstance) finChartInstance.destroy();
+            const ctx = document.getElementById('financeChart').getContext('2d');
+            finChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sellerTransactions.map(t => t.date + ' (' + t.category + ')'),
+                    datasets: [{ label: 'Jumlah', data: sellerTransactions.map(t => t.type === 'Masuk' ? t.amount : -t.amount), backgroundColor: sellerTransactions.map(t => t.type === 'Masuk' ? '#16a34a' : '#dc2626') }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { callback: v => fmt(v) } } } }
+            });
+        }
+
+        // ===== MARKETING =====
+        let convChartInstance = null;
+        function renderMarketing() {
+            const byViews = [...sellerProducts].sort((a, b) => b.total_views - a.total_views);
+            const bySales = [...sellerProducts].sort((a, b) => b.total_sold - a.total_sold);
+
+            document.getElementById('mk-top-views').innerHTML = byViews.slice(0, 5).map((p, i) =>
+                `<div class="flex justify-between items-center p-2 bg-gray-50 rounded-lg"><span class="text-sm font-semibold">${i + 1}. ${p.name}</span><span class="text-xs font-bold text-blue-600">👁 ${p.total_views.toLocaleString()}</span></div>`
+            ).join('');
+
+            document.getElementById('mk-top-sales').innerHTML = bySales.slice(0, 5).map((p, i) =>
+                `<div class="flex justify-between items-center p-2 bg-gray-50 rounded-lg"><span class="text-sm font-semibold">${i + 1}. ${p.name}</span><span class="text-xs font-bold text-green-600">🛒 ${p.total_sold}</span></div>`
+            ).join('');
+
+            if (convChartInstance) convChartInstance.destroy();
+            const ctx = document.getElementById('conversionChart').getContext('2d');
+            const withConv = sellerProducts.filter(p => p.total_views > 0).map(p => ({ name: p.name, rate: ((p.total_sold / p.total_views) * 100).toFixed(1) }));
+            convChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: withConv.map(p => p.name), datasets: [{ label: 'Conversion %', data: withConv.map(p => p.rate), backgroundColor: '#7c3aed' }] },
+                options: { responsive: true, indexAxis: 'y', scales: { x: { ticks: { callback: v => v + '%' } } } }
+            });
+        }
+
+        // ===== MARKET =====
+        let catChartInstance = null, priceChartInstance = null;
+        function renderMarket() {
+            const cats = {};
+            sellerProducts.forEach(p => { cats[p.category] = (cats[p.category] || 0) + p.total_sold; });
+
+            if (catChartInstance) catChartInstance.destroy();
+            catChartInstance = new Chart(document.getElementById('categoryChart').getContext('2d'), {
+                type: 'doughnut',
+                data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: ['#dc2626', '#2563eb', '#16a34a', '#d97706', '#7c3aed', '#64748b'] }] },
+                options: { responsive: true }
+            });
+
+            const priceRanges = { '<10K': 0, '10-25K': 0, '25-50K': 0, '50-100K': 0, '>100K': 0 };
+            sellerProducts.forEach(p => { if (p.price < 10000) priceRanges['<10K']++; else if (p.price <= 25000) priceRanges['10-25K']++; else if (p.price <= 50000) priceRanges['25-50K']++; else if (p.price <= 100000) priceRanges['50-100K']++; else priceRanges['>100K']++; });
+
+            if (priceChartInstance) priceChartInstance.destroy();
+            priceChartInstance = new Chart(document.getElementById('priceChart').getContext('2d'), {
+                type: 'bar',
+                data: { labels: Object.keys(priceRanges), datasets: [{ label: 'Jumlah Produk', data: Object.values(priceRanges), backgroundColor: '#e11d48' }] },
+                options: { responsive: true }
+            });
+
+            document.getElementById('market-trending').innerHTML = [...sellerProducts].sort((a, b) => b.total_sold - a.total_sold).slice(0, 5).map((p, i) =>
+                `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl"><div><span class="text-sm font-bold">${i + 1}. ${p.name}</span><span class="text-xs text-gray-400 ml-2">${p.category}</span></div><span class="font-bold text-sm text-green-600">${p.total_sold} terjual · ${fmt(p.price)}</span></div>`
+            ).join('');
+        }
+
+        // ===== INVENTORY =====
+        function renderInventory() {
+            const lowStock = sellerProducts.filter(p => p.stock > 0 && p.stock <= 5);
+            const outStock = sellerProducts.filter(p => p.stock <= 0);
+            document.getElementById('inv-low').textContent = lowStock.length + ' produk';
+            document.getElementById('inv-empty').textContent = outStock.length + ' produk';
+
+            const allItems = [...lowStock.map(p => ({ ...p, tag: '⚠️ Hampir Habis' })), ...outStock.map(p => ({ ...p, tag: '❌ Stok Kosong' }))];
+            document.getElementById('inv-movements').innerHTML = allItems.length > 0 ? allItems.map(p =>
+                `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl">
+                    <div><p class="font-bold text-sm">${p.name}</p><p class="text-xs text-gray-400">Stok: ${p.stock} · ${p.tag}</p></div>
+                    <button onclick="restockProduct(${p.id})" class="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700">+ Restok</button>
+                </div>`
+            ).join('') : '<p class="text-sm text-green-600 text-center py-5">✅ Semua stok aman!</p>';
+        }
+
+        function restockProduct(id) {
+            const qty = prompt('Tambah berapa unit stok?');
+            if (!qty || isNaN(qty)) return;
+            const p = sellerProducts.find(x => x.id === id);
+            if (p) { p.stock += parseInt(qty); localStorage.setItem('seller_products', JSON.stringify(sellerProducts)); renderInventory(); alert('✅ Stok berhasil ditambah!'); }
+        }
+
+        // ===== PROFILE =====
+        function loadProfile() {
+            if (!currentUser) return;
+            document.getElementById('pf-store').value = currentUser.store_name || '';
+            document.getElementById('pf-owner').value = currentUser.owner_name || '';
+            document.getElementById('pf-phone').value = currentUser.phone || '';
+            document.getElementById('pf-address').value = currentUser.address || '';
+            document.getElementById('pf-city').value = currentUser.city || '';
+            document.getElementById('pf-desc').value = currentUser.store_description || '';
+        }
+
+        // ===== SALES HISTORY =====
+        function renderSalesHistory() {
+            const sales = JSON.parse(localStorage.getItem('seller_sales') || '[]');
+            const el = document.getElementById('sales-list');
+            if (sales.length === 0) { el.innerHTML = '<p class="text-sm text-gray-400 text-center py-10">Belum ada riwayat penjualan.</p>'; return; }
+            el.innerHTML = sales.map(s => `
+                <div class="bg-white rounded-xl border p-4 flex justify-between items-center shadow-sm">
+                    <div>
+                        <p class="font-bold text-sm">${s.id} <span class="text-[10px] bg-green-100 text-green-700 px-2 py-0.5 rounded-full ml-2">LUNAS</span></p>
+                        <p class="text-xs text-gray-400 mt-1">${s.date} · ${s.method}</p>
+                        <p class="text-xs font-bold text-red-600 mt-0.5">${s.item} (x${s.qty})</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-lg">${s.total}</p>
+                        <button onclick='alert("Mencetak struk: " + "${s.id}")' class="text-[10px] bg-gray-800 text-white px-3 py-1 rounded-lg mt-1 hover:bg-black transition">Cetak Struk</button>
+                    </div>
+                </div>`).join('');
+        }
+
+        // ===== AI INSIGHTS =====
+        function getAiInsight(type) {
+            const insights = {
+                'marketing': "Berdasarkan data 30 hari terakhir, produk 'Es Teh Manis' memiliki conversion rate tertinggi (24.3%). Kami merekomendasikan untuk menaikkan anggaran marketing untuk produk ini sebesar 15% guna memaksimalkan profit.",
+                'market': "Tren pasar minggu ini menunjukkan peningkatan minat pada kategori 'Makanan Sehat'. Produk Anda 'Nasi Goreng Spesial' bersaing ketat dengan 12 kompetitor di radius 2km. Disarankan memberikan promo buy 1 get 1 di jam makan malam."
+            };
+            alert("🤖 AGI AI ANALYTICS:\n\n" + (insights[type] || "Menganalisis data... Mohon tunggu."));
+        }
+
+        // ===== ADMIN EDITOR (CMS) & STUDIO =====
+        function initAdminEditor() {
+            loadEditorFile();
+            loadStudioConfig();
+        }
+
+        function switchEditorTab(tab) {
+            document.getElementById('editor-studio').classList.toggle('hidden', tab !== 'studio');
+            document.getElementById('editor-code').classList.toggle('hidden', tab !== 'code');
+            document.getElementById('tab-studio-btn').className = tab === 'studio' ? 'flex-1 py-3 text-sm font-bold rounded-2xl transition bg-white shadow-sm text-red-600' : 'flex-1 py-3 text-sm font-bold rounded-2xl transition text-gray-500 hover:bg-white/50';
+            document.getElementById('tab-code-btn').className = tab === 'code' ? 'flex-1 py-3 text-sm font-bold rounded-2xl transition bg-white shadow-sm text-red-600' : 'flex-1 py-3 text-sm font-bold rounded-2xl transition text-gray-500 hover:bg-white/50';
+        }
+
+        let studioShops = [];
+        function loadStudioConfig() {
+            const config = JSON.parse(localStorage.getItem('webkita_studio_config') || `{
+                "siteName": "Find.it AI",
+                "heroTitle": "Agentic Shopping for Everyone",
+                "heroDesc": "Cari produk apapun di Cikarang, biarkan AI yang mengurus delivery dan transaksinya.",
+                "heroImg": "https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&q=80&w=1200"
+            }`);
+
+            document.getElementById('studio-site-name').value = config.siteName;
+            document.getElementById('studio-hero-title').value = config.heroTitle;
+            document.getElementById('studio-hero-desc').value = config.heroDesc;
+            document.getElementById('studio-hero-img').value = config.heroImg;
+
+            // Load Global Shops
+            studioShops = JSON.parse(localStorage.getItem('webkita_studio_shops') || '[]');
+            if (studioShops.length === 0) {
+                // Initial seed from some base shops
+                studioShops = [
+                    { id: 1, name: "Kopi Kenangan Pusat", t: "Kopi, Minuman", img: "https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=400" },
+                    { id: 2, name: "Janji Jiwa Mall", t: "Kopi, Minuman", img: "https://images.unsplash.com/photo-1541167760496-1628856ab772?w=400" },
+                    { id: 4, name: "Mixue Jababeka", t: "Es Krim, Minuman", img: "https://images.unsplash.com/photo-1557142046-c704a3adf364?w=400" },
+                    { id: 8, name: "Gacoan Cikarang", t: "Mie Pedas", img: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=400" }
+                ];
+            }
+            renderStudioShops();
+            updateStudioPreview();
+        }
+
+        function renderStudioShops() {
+            const el = document.getElementById('studio-shop-list');
+            el.innerHTML = studioShops.map((s, idx) => `
+                <tr class="hover:bg-gray-100 transition">
+                    <td class="px-6 py-4 flex items-center gap-3">
+                        <img src="${s.img}" class="w-10 h-10 object-cover rounded-lg border">
+                        <div class="flex-1">
+                            <input oninput="updateStudioShop(${idx}, 'name', this.value)" class="bg-transparent border-b border-transparent hover:border-red-400 font-bold outline-none w-full" value="${s.name}">
+                            <input oninput="updateStudioShop(${idx}, 'img', this.value)" class="bg-transparent text-[10px] text-gray-400 outline-none w-full truncate" value="${s.img}">
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <input oninput="updateStudioShop(${idx}, 't', this.value)" class="bg-transparent border-b border-transparent hover:border-red-400 outline-none w-full" value="${s.t}">
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <span class="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-[10px] font-bold">LIVE</span>
+                            <button onclick="deleteStudioShop(${idx})" class="text-red-400 hover:text-red-600"><i data-feather="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+            feather.replace();
+            updateStudioPreview();
+        }
+
+        function updateStudioShop(idx, key, val) {
+            studioShops[idx][key] = val;
+            updateStudioPreview();
+        }
+
+        function deleteStudioShop(idx) {
+            studioShops.splice(idx, 1);
+            renderStudioShops();
+        }
+
+        function saveStudioShops() {
+            localStorage.setItem('webkita_studio_shops', JSON.stringify(studioShops));
+            alert("✅ Data Toko di Website Utama telah diperbarui!");
+        }
+
+        function updateStudioPreview() {
+            const sn = document.getElementById('studio-site-name').value;
+            const ht = document.getElementById('studio-hero-title').value;
+            const hd = document.getElementById('studio-hero-desc').value;
+            const hi = document.getElementById('studio-hero-img').value;
+
+            document.getElementById('pre-site-name').innerText = sn;
+            document.getElementById('pre-hero-title').innerText = ht;
+            document.getElementById('pre-hero-desc').innerText = hd;
+            document.getElementById('pre-hero-img').src = hi;
+
+            const grid = document.getElementById('pre-grid');
+            grid.innerHTML = studioShops.slice(0, 4).map(s => `
+                <div class="h-20 bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                    <img src="${s.img}" class="h-10 w-full object-cover">
+                    <div class="p-1.5"><div class="font-bold text-[8px] truncate">${s.name}</div><div class="text-[6px] text-red-600 truncate">${s.t}</div></div>
+                </div>
+            `).join('');
+        }
+
+        // Live preview listeners
+        ['studio-site-name', 'studio-hero-title', 'studio-hero-desc', 'studio-hero-img'].forEach(id => {
+            document.getElementById(id).addEventListener('input', updateStudioPreview);
+        });
+
+        function saveStudioConfig() {
+            const config = {
+                siteName: document.getElementById('studio-site-name').value,
+                heroTitle: document.getElementById('studio-hero-title').value,
+                heroDesc: document.getElementById('studio-hero-desc').value,
+                heroImg: document.getElementById('studio-hero-img').value
+            };
+            localStorage.setItem('webkita_studio_config', JSON.stringify(config));
+            alert("✅ Tampilan Website Utama telah diperbarui! Silakan buka halaman Buyer untuk melihat perubahannya.");
+        }
+
+        function loadEditorFile() {
+            const file = document.getElementById('editor-file-selector').value;
+            const editor = document.getElementById('cms-editor');
+            const status = document.getElementById('load-status');
+
+            // Simulating loading content from local or remote
+            let content = localStorage.getItem('cms_' + file) || `<!-- Content of ${file} -->\n<div class="container">\n  <h1>Edit ${file} directly</h1>\n</div>`;
+            editor.value = content;
+
+            status.classList.remove('opacity-0');
+            setTimeout(() => status.classList.add('opacity-0'), 1500);
+        }
+
+        function saveCmsContent() {
+            const file = document.getElementById('editor-file-selector').value;
+            const content = document.getElementById('cms-editor').value;
+            localStorage.setItem('cms_' + file, content);
+            alert(`✅ Perubahan pada ${file} berhasil disimpan ke database CMS!`);
+        }
+
+        function askAi() {
+            const input = document.getElementById('ai-input');
+            const txt = input.value.trim(); if (!txt) return;
+
+            const chatLogs = document.getElementById('ai-chat-logs');
+            chatLogs.insertAdjacentHTML('beforeend', `<div class="bg-blue-50 p-3 rounded-lg shadow-sm border self-end"><p class="font-bold text-blue-600 mb-1">Anda:</p><p class="text-gray-600">${txt}</p></div>`);
+            input.value = '';
+
+            setTimeout(() => {
+                let aiResponse = "Saya mengerti. Saya akan membantu menyesuaikan kode HTML/CSS di editor sesuai permintaan Anda.";
+                if (txt.toLowerCase().includes('warna')) aiResponse = "Tentu! Saya telah mendeteksi bagian warna di editor. Saya merekomendasikan menggunakan palet 'maroon-600' untuk kesan premium.";
+                if (txt.toLowerCase().includes('produk')) aiResponse = "Saya bisa membantu menambahkan bagian produk baru. Periksa editor, saya telah menambahkan template produk baru.";
+
+                chatLogs.insertAdjacentHTML('beforeend', `<div class="bg-white p-3 rounded-lg shadow-sm border"><p class="font-bold text-red-600 mb-1">AGI AI:</p><p class="text-gray-600">${aiResponse}</p></div>`);
+                chatLogs.scrollTop = chatLogs.scrollHeight;
+            }, 1000);
+        }
+
+        function updateProfile() {
+            currentUser.store_name = document.getElementById('pf-store').value;
+            currentUser.owner_name = document.getElementById('pf-owner').value;
+            currentUser.phone = document.getElementById('pf-phone').value;
+            currentUser.address = document.getElementById('pf-address').value;
+            currentUser.city = document.getElementById('pf-city').value;
+            currentUser.store_description = document.getElementById('pf-desc').value;
+            localStorage.setItem('seller_user', JSON.stringify(currentUser));
+
+            const sellers = JSON.parse(localStorage.getItem('all_sellers') || '[]');
+            const idx = sellers.findIndex(s => s.id === currentUser.id);
+            if (idx >= 0) { sellers[idx] = currentUser; localStorage.setItem('all_sellers', JSON.stringify(sellers)); }
+
+            document.getElementById('seller-name').textContent = currentUser.store_name;
+            alert('✅ Profil berhasil diperbarui!');
+        }
+
+        feather.replace();
+    </script>
+</body>
+
+</html>
